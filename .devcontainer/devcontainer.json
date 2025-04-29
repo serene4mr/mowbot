@@ -1,0 +1,27 @@
+{
+    "name": "mowbot_dev",
+    "build": {
+        "dockerfile": "../Dockerfile",
+        "context": "..",
+        "options": [
+            "-t", "mowbot_dev",
+            "--build-arg", "BASE_IMAGE=ros:humble-ros-base-jammy"
+        ]
+    },
+    // "image": "ghcr.io/serene4uto/mowbot:main-devel",
+    "runArgs": [
+        "--name", "mowbot_dev",
+        "--net", "host",
+        "--privileged",
+        "-v", "/dev:/dev",
+        "-v", "/tmp/.X11-unix:/tmp/.X11-unix",
+        "-e", "DISPLAY"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python"
+            ]
+        }
+    }
+  }
