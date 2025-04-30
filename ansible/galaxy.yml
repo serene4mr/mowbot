@@ -1,6 +1,6 @@
 # Required
-namespace: amr4serene
-name: mowbot
+namespace: mowbot
+name: dev_env
 version: 0.1.0
 readme: README.md
 authors:
@@ -9,7 +9,7 @@ authors:
 # Optional
 description: Set up development environment for mowbot project
 license:
-  - MIT
+  - MIT # TODO: update later
 tags:
   - mowbot
 dependencies: {}

@@ -4,6 +4,8 @@
 # Note: -y option is only for CI.
 
 
+set -e
+
 # Function to print help message
 print_help() {
     echo "Usage: setup-dev-env.sh [OPTIONS]"
@@ -15,7 +17,9 @@ print_help() {
     echo "  --no-nvidia     Disable installation of the NVIDIA-related roles ('cuda' and 'tensorrt')"
     echo "  --no-cuda-drivers Disable installation of 'cuda-drivers' in the role 'cuda'"
     echo "  --runtime       Disable installation dev package of role 'cuda' and 'tensorrt'"
-    echo "  --data-dir      Set data directory (default: $HOME/mowbot_data)"
+    echo "  --data-dir      Set data directory (default: $HOME/autoware_data)"
+    echo "  --download-artifacts"
+    echo "                  Download artifacts"
     echo "  --module        Specify the module (default: all)"
     echo ""
 }
@@ -70,3 +74,7 @@ done
 
 # Select installation type (fixed)
 target_playbook="mowbot.dev_env.main" # Default playbook
+
+if [ ${#args[@]} -ge 1 ]; then
+    target_playbook="autoware.dev_env.${args[0]}"
+fi
