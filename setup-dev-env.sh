@@ -17,7 +17,7 @@ print_help() {
     echo "  --no-nvidia     Disable installation of the NVIDIA-related roles ('cuda' and 'tensorrt')"
     echo "  --no-cuda-drivers Disable installation of 'cuda-drivers' in the role 'cuda'"
     echo "  --runtime       Disable installation dev package of role 'cuda' and 'tensorrt'"
-    echo "  --data-dir      Set data directory (default: $HOME/autoware_data)"
+    echo "  --data-dir      Set data directory (default: $HOME/mowbot_data)"
     echo "  --download-artifacts"
     echo "                  Download artifacts"
     echo "  --module        Specify the module (default: all)"
@@ -76,7 +76,7 @@ done
 target_playbook="mowbot.dev_env.main" # Default playbook
 
 if [ ${#args[@]} -ge 1 ]; then
-    target_playbook="autoware.dev_env.${args[0]}"
+    target_playbook="mowbot.dev_env.${args[0]}"
 fi
 
 # Initialize ansible args
@@ -121,4 +121,72 @@ if [ "$option_runtime" = "true" ]; then
     ansible_args+=("--extra-vars" "install_devel=N")
 else
     ansible_args+=("--extra-vars" "install_devel=y")
+fi
+
+# Check downloading artifacts
+if [ "$option_yes" = "true" ] || [ "$option_download_artifacts" = "true" ]; then
+    echo -e "\e[36mArtifacts will be downloaded to $option_data_dir\e[m"
+    ansible_args+=("--extra-vars" "prompt_download_artifacts=y")
+fi
+
+ansible_args+=("--extra-vars" "data_dir=$option_data_dir")
+
+# Check module option
+if [ "$option_module" != "" ]; then
+    ansible_args+=("--extra-vars" "module=$option_module")
+fi
+
+# Load env
+source "$SCRIPT_DIR/amd64.env"
+if [ "$(uname -m)" = "aarch64" ]; then
+    source "$SCRIPT_DIR/arm64.env"
+fi
+
+# Add env args
+# shellcheck disable=SC2013
+for env_name in $(sed -e "s/^\s*//" -e "/^#/d" -e "s/=.*//" <amd64.env); do
+    ansible_args+=("--extra-vars" "${env_name}=${!env_name}")
+done
+
+# Install sudo
+if ! (command -v sudo >/dev/null 2>&1); then
+    apt-get -y update
+    apt-get -y install sudo
+fi
+
+# Install git
+if ! (command -v git >/dev/null 2>&1); then
+    sudo apt-get -y update
+    sudo apt-get -y install git
+fi
+
+# Install pip for ansible
+if ! (python3 -m pip --version >/dev/null 2>&1); then
+    sudo apt-get -y update
+    sudo apt-get -y install python3-pip python3-venv
+fi
+
+# Install pipx for ansible
+if ! (python3 -m pipx --version >/dev/null 2>&1); then
+    sudo apt-get -y update
+    python3 -m pip install --user pipx
+fi
+
+# Install ansible
+python3 -m pipx ensurepath
+export PATH="${PIPX_BIN_DIR:=$HOME/.local/bin}:$PATH"
+pipx install --include-deps --force "ansible==6.*"
+
+# Install ansible collections
+echo -e "\e[36m"ansible-galaxy collection install -f -r "$SCRIPT_DIR/ansible-galaxy-requirements.yaml" "\e[m"
+ansible-galaxy collection install -f -r "$SCRIPT_DIR/ansible-galaxy-requirements.yaml"
+
+# Run ansible
+echo -e "\e[36m"ansible-playbook "$target_playbook" "${ansible_args[@]}" "\e[m"
+if ansible-playbook "$target_playbook" "${ansible_args[@]}"; then
+    echo -e "\e[32mCompleted.\e[0m"
+    exit 0
+else
+    echo -e "\e[31mFailed.\e[0m"
+    exit 1
 fi
