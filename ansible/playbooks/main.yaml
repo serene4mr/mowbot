@@ -7,7 +7,11 @@
         [Warning] Some Mowbot components depend on the CUDA, cuDNN and TensorRT NVIDIA libraries which have end-user license agreements that should be reviewed before installation.
         Install NVIDIA libraries? [y/N]
       private: false
-
+    - name: prompt_download_artifacts
+      prompt: |-
+        [Warning] Should the ONNX model files and other artifacts be downloaded alongside setting up the development environment.
+        Download artifacts? [y/N]
+      private: false
     - name: install_devel
       prompt: |-
         [Warning] Do you want to install recommended development tools for Mowbot? [y/N]
@@ -49,4 +53,6 @@
     - role: mowbot.dev_env.dev_tools
       when: install_devel == 'y'
   
-  
+    # ONNX files and other artifacts
+    - role: mowbot.dev_env.artifacts
+      when: prompt_download_artifacts == 'y'
