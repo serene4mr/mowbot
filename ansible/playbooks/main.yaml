@@ -38,12 +38,15 @@
 
   roles:
     # Mowbot dependencies
-    - role: autoware.dev_env.build_tools
+    - role: mowbot.dev_env.rmw_implementation
+    - role: mowbot.dev_env.build_tools
 
     # Mowbot module dependencies
-    # TODO:
+    - role: mowbot.dev_env.cuda
+      when: prompt_install_nvidia == 'y'
 
     # Mowbot devel dependencies
-    # TODO:
+    - role: mowbot.dev_env.dev_tools
+      when: install_devel == 'y'
   
   

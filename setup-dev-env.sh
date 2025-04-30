@@ -78,3 +78,47 @@ target_playbook="mowbot.dev_env.main" # Default playbook
 if [ ${#args[@]} -ge 1 ]; then
     target_playbook="autoware.dev_env.${args[0]}"
 fi
+
+# Initialize ansible args
+ansible_args=()
+
+# Confirm to start installation
+if [ "$option_yes" = "true" ]; then
+    echo -e "\e[36mRun the setup in non-interactive mode.\e[m"
+else
+    echo -e "\e[33mSetting up the build environment can take up to 1 hour.\e[m"
+    read -rp ">  Are you sure you want to run setup? [y/N] " answer
+
+    # Check whether to cancel
+    if ! [[ ${answer:0:1} =~ y|Y ]]; then
+        echo -e "\e[33mCancelled.\e[0m"
+        exit 1
+    fi
+
+    ansible_args+=("--ask-become-pass")
+fi
+
+# Check verbose option
+if [ "$option_verbose" = "true" ]; then
+    ansible_args+=("-vvv")
+fi
+
+# Check installation of NVIDIA libraries
+if [ "$option_no_nvidia" = "true" ]; then
+    ansible_args+=("--extra-vars" "prompt_install_nvidia=n")
+elif [ "$option_yes" = "true" ]; then
+    ansible_args+=("--extra-vars" "prompt_install_nvidia=y")
+fi
+
+# Check installation of CUDA Drivers
+if [ "$option_no_cuda_drivers" = "true" ]; then
+    ansible_args+=("--extra-vars" "cuda_install_drivers=false")
+fi
+
+# Check installation of dev package
+if [ "$option_runtime" = "true" ]; then
+    ansible_args+=("--extra-vars" "ros2_installation_type=ros-base") # ROS installation type, default "desktop"
+    ansible_args+=("--extra-vars" "install_devel=N")
+else
+    ansible_args+=("--extra-vars" "install_devel=y")
+fi
