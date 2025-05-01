@@ -2,7 +2,7 @@ ARG MOWBOT_BASE_IMAGE
 ARG MOWBOT_BASE_CUDA_IMAGE
 
 # hadolint ignore=DL3006
-FROM $MOWBOT_BASE_IMAGE AS main-devel
+FROM $MOWBOT_BASE_IMAGE AS rosdep-depend
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG ROS_DISTRO
 
