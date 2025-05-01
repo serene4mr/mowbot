@@ -23,3 +23,49 @@ RUN --mount=type=ssh \
   && /mowbot/cleanup_apt.sh
 
 # Generate install package lists
+# ....
+
+##########################################################################
+
+# hadolint ignore=DL3006
+FROM $MOWBOT_BASE_IMAGE AS mowbot-devel
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ARG ROS_DISTRO
+ARG LIB_DIR
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["/bin/bash"]
+
+##########################################################################
+
+# hadolint ignore=DL3006
+FROM $MOWBOT_BASE_CUDA_IMAGE AS mowbot-devel-cuda
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ARG ROS_DISTRO
+ARG LIB_DIR
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["/bin/bash"]
+
+##########################################################################
+
+# hadolint ignore=DL3006
+FROM $MOWBOT_BASE_IMAGE AS mowbot
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ARG ROS_DISTRO
+ARG LIB_DIR
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["/bin/bash"]
+
+##########################################################################
+
+# hadolint ignore=DL3006
+FROM $MOWBOT_BASE_CUDA_IMAGE AS mowbot-cuda
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ARG ROS_DISTRO
+ARG LIB_DIR
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["/bin/bash"]
+
