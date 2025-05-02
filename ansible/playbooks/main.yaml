@@ -48,6 +48,8 @@
     # Mowbot module dependencies
     - role: mowbot.dev_env.cuda
       when: prompt_install_nvidia == 'y'
+    - role: mowbot.dev_env.tensorrt
+      when: prompt_install_nvidia == 'y'
 
     # Mowbot devel dependencies
     - role: mowbot.dev_env.dev_tools

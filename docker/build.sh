@@ -11,7 +11,7 @@ print_help() {
     echo "  --no-cuda       Disable CUDA support"
     echo "  --platform      Specify the platform (default: current platform)"
     echo "  --devel-only    Build devel image only"
-    echo "  --target        Specify the target image (default: universe or universe-devel if --devel-only is set)"
+    echo "  --target        Specify the target image (default: mowbot or mowbot-devel if --devel-only is set)"
     echo ""
     echo "Note: The --platform option should be one of 'linux/amd64' or 'linux/arm64'."
 }
@@ -68,9 +68,9 @@ set_build_options() {
         image_name_suffix=""
     else
         if [ "$option_devel_only" = "true" ]; then
-            target="universe-devel"
+            target="mowbot-devel"
         else
-            target="universe"
+            target="mowbot"
         fi
     fi
 }
@@ -142,8 +142,8 @@ build_images() {
         --set "*.args.BASE_IMAGE=$base_image" \
         --set "*.args.SETUP_ARGS=$setup_args" \
         --set "*.args.LIB_DIR=$lib_dir" \
-        --set "base.tags=ghcr.io/AMR4SERENE/mowbot-base:latest" \
-        --set "base-cuda.tags=ghcr.io/AMR4SERENE/mowbot-base:cuda-latest"
+        --set "base.tags=ghcr.io/amr4serene/mowbot-base:latest" \
+        --set "base-cuda.tags=ghcr.io/amr4serene/mowbot-base:cuda-latest"
     docker buildx bake --load --progress=plain -f "$SCRIPT_DIR/docker-bake.hcl" -f "$SCRIPT_DIR/docker-bake-cuda.hcl" \
         --set "*.context=$WORKSPACE_ROOT" \
         --set "*.ssh=default" \
@@ -153,10 +153,10 @@ build_images() {
         --set "*.args.MOWBOT_BASE_CUDA_IMAGE=$mowbot_base_cuda_image" \
         --set "*.args.SETUP_ARGS=$setup_args" \
         --set "*.args.LIB_DIR=$lib_dir" \
-        --set "mowbot-devel.tags=ghcr.io/AMR4SERENE/mowbot:devel" \
-        --set "mowbot.tags=ghcr.io/AMR4SERENE/mowbot:default" \
-        --set "mowbot-devel-cuda.tags=ghcr.io/AMR4SERENE/mowbot:devel-cuda" \
-        --set "mowbot-cuda.tags=ghcr.io/AMR4SERENE/mowbot:cuda" \
+        --set "mowbot-devel.tags=ghcr.io/amr4serene/mowbot:mowbot-devel" \
+        --set "mowbot.tags=ghcr.io/amr4serene/mowbot:mowbot" \
+        --set "mowbot-devel-cuda.tags=ghcr.io/amr4serene/mowbot:mowbot-devel-cuda" \
+        --set "mowbot-cuda.tags=ghcr.io/amr4serene/mowbot:mowbot-cuda" \
         "$target$image_name_suffix"
     set +x
 }
