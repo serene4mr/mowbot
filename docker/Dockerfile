@@ -28,7 +28,7 @@ RUN --mount=type=ssh \
 ##########################################################################
 
 # hadolint ignore=DL3006
-FROM $MOWBOT_BASE_IMAGE AS mowbot-devel
+FROM $MOWBOT_BASE_IMAGE AS main-dev
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG ROS_DISTRO
 ARG LIB_DIR
@@ -39,7 +39,7 @@ CMD ["/bin/bash"]
 ##########################################################################
 
 # hadolint ignore=DL3006
-FROM $MOWBOT_BASE_CUDA_IMAGE AS mowbot-devel-cuda
+FROM $MOWBOT_BASE_CUDA_IMAGE AS main-dev-cuda
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG ROS_DISTRO
 ARG LIB_DIR
@@ -50,7 +50,7 @@ CMD ["/bin/bash"]
 ##########################################################################
 
 # hadolint ignore=DL3006
-FROM $MOWBOT_BASE_IMAGE AS mowbot
+FROM $MOWBOT_BASE_IMAGE AS main-runtime
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG ROS_DISTRO
 ARG LIB_DIR
@@ -61,7 +61,7 @@ CMD ["/bin/bash"]
 ##########################################################################
 
 # hadolint ignore=DL3006
-FROM $MOWBOT_BASE_CUDA_IMAGE AS mowbot-cuda
+FROM $MOWBOT_BASE_CUDA_IMAGE AS main-runtime-cuda
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG ROS_DISTRO
 ARG LIB_DIR

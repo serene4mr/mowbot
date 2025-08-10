@@ -12,7 +12,7 @@ This role sets up ROS 2 RMW implementation following [this page](https://docs.ro
 ## Manual Installation
 
 ```bash
-wget -O /tmp/amd64.env https://raw.githubusercontent.com/AMR4SERENE/mowbot/main/amd64.env && source /tmp/amd64.env
+wget -O /tmp/amd64.env https://raw.githubusercontent.com/serene4mr/mowbot/main/amd64.env && source /tmp/amd64.env
 
 # For details: https://docs.ros.org/en/humble/How-To-Guides/Working-with-multiple-RMW-implementations.html
 sudo apt update

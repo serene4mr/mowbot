@@ -13,8 +13,8 @@ license:
 tags:
   - mowbot
 dependencies: {}
-repository: "https://github.com/AMR4SERENE/mowbot"
-documentation: "https://github.com/AMR4SERENE/mowbot/REAMDME.md"
-homepage: "https://github.com/AMR4SERENE/mowbot"
-issues: "https://github.com/AMR4SERENE/mowbot/issues"
+repository: "https://github.com/serene4mr/mowbot"
+documentation: "https://github.com/serene4mr/mowbot/README.md"
+homepage: "https://github.com/serene4mr/mowbot"
+issues: "https://github.com/serene4mr/mowbot/issues"
 build_ignore: []

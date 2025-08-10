@@ -46,7 +46,7 @@ All images support both `latest` and versioned tags:
 ./docker/build.sh
 
 # Build specific target
-./docker/build.sh --target mowbot-devel-cuda
+./docker/build.sh --target main-dev-cuda
 ```
 
 ### Running Containers
@@ -116,15 +116,15 @@ This stage is built on top of `$MOWBOT_BASE_IMAGE` and adds the CUDA runtime env
 The ROS dependency package list files will be generated.
 These files will be used in the subsequent stages:
 
-- `mowbot-devel` (maps to `dev` tag)
-- `mowbot` (maps to `runtime` tag)
+- `main-dev` (maps to `dev` tag)
+- `main-runtime` (maps to `runtime` tag)
 
 By generating only the package list files and copying them to the subsequent stages, the dependency packages will not be reinstalled during the container build process unless the dependency packages change.
 
-### `mowbot-devel` → `ghcr.io/serene4mr/mowbot:main-dev`
+### `main-dev` → `ghcr.io/serene4mr/mowbot:main-dev`
 
 Development environment with full build tools, debugging capabilities, and development dependencies.
 
-### `mowbot` → `ghcr.io/serene4mr/mowbot:main-runtime`
+### `main-runtime` → `ghcr.io/serene4mr/mowbot:main-runtime`
 
 Production runtime environment optimized for deployment with minimal size and security hardening.

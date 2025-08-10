@@ -1,22 +1,22 @@
 group "default" {
   targets = [
-    "mowbot-devel-cuda",
-    "mowbot-cuda"
+    "main-dev-cuda",
+    "main-runtime-cuda"
   ]
 }
 
 // For docker/metadata-action
-target "docker-metadata-action-mowbot-devel-cuda" {}
-target "docker-metadata-action-mowbot-cuda" {}
+target "docker-metadata-action-main-dev-cuda" {}
+target "docker-metadata-action-main-runtime-cuda" {}
 
-target "mowbot-devel-cuda" {
-  inherits = ["docker-metadata-action-mowbot-devel-cuda"]
+target "main-dev-cuda" {
+  inherits = ["docker-metadata-action-main-dev-cuda"]
   dockerfile = "docker/Dockerfile"
-  target = "mowbot-devel-cuda"
+  target = "main-dev-cuda"
 }
 
-target "mowbot-cuda" {
-  inherits = ["docker-metadata-action-mowbot-cuda"]
+target "main-runtime-cuda" {
+  inherits = ["docker-metadata-action-main-runtime-cuda"]
   dockerfile = "docker/Dockerfile"
-  target = "mowbot-cuda"
+  target = "main-runtime-cuda"
 }

@@ -1,23 +1,23 @@
 group "default" {
   targets = [
-    "mowbot-devel",
-    "mowbot"
+    "main-dev",
+    "main-runtime"
   ]
 }
 
 
 // For docker/metadata-action
-target "docker-metadata-action-mowbot-devel" {}
-target "docker-metadata-action-mowbot" {}
+target "docker-metadata-action-main-dev" {}
+target "docker-metadata-action-main-runtime" {}
 
-target "mowbot-devel" {
-  inherits = ["docker-metadata-action-mowbot-devel"]
+target "main-dev" {
+  inherits = ["docker-metadata-action-main-dev"]
   dockerfile = "docker/Dockerfile"
-  target = "mowbot-devel"
+  target = "main-dev"
 }
 
-target "mowbot" {
-  inherits = ["docker-metadata-action-mowbot"]
+target "main-runtime" {
+  inherits = ["docker-metadata-action-main-runtime"]
   dockerfile = "docker/Dockerfile"
-  target = "mowbot"
+  target = "main-runtime"
 }

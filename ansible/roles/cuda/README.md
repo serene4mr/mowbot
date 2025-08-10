@@ -34,7 +34,7 @@ Follow these instructions to download and install the CUDA Toolkit.
 From: <https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#network-repo-installation-for-ubuntu>
 
 ```bash
-wget -O /tmp/amd64.env https://raw.githubusercontent.com/AMR4SERENE/mowbot/main/amd64.env && source /tmp/amd64.env
+wget -O /tmp/amd64.env https://raw.githubusercontent.com/serene4mr/mowbot/main/amd64.env && source /tmp/amd64.env
 
 os=ubuntu2204
 wget https://developer.download.nvidia.com/compute/cuda/repos/$os/$(uname -m)/cuda-keyring_1.1-1_all.deb
