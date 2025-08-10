@@ -12,6 +12,7 @@ print_help() {
     echo "  --platform      Specify the platform (default: current platform)"
     echo "  --devel-only    Build devel image only"
     echo "  --target        Specify the target image (default: mowbot or mowbot-devel if --devel-only is set)"
+    echo "  --version       Specify the version tag (default: latest)"
     echo ""
     echo "Note: The --platform option should be one of 'linux/amd64' or 'linux/arm64'."
 }
@@ -39,6 +40,10 @@ parse_arguments() {
             ;;
         --target)
             option_target="$2"
+            shift
+            ;;
+        --version)
+            option_version="$2"
             shift
             ;;
         *)
@@ -72,6 +77,15 @@ set_build_options() {
         else
             target="mowbot"
         fi
+    fi
+}
+
+# Set version
+set_version() {
+    if [ -n "$option_version" ]; then
+        VERSION="$option_version"
+    else
+        VERSION="latest"
     fi
 }
 
@@ -125,6 +139,9 @@ build_images() {
     # https://github.com/docker/buildx/issues/484
     export BUILDKIT_STEP_LOG_MAX_SIZE=10000000
 
+    # Set version (can be overridden by environment variable)
+    VERSION=${VERSION:-latest}
+
     echo "Building images for platform: $platform"
     echo "ROS distro: $rosdistro"
     echo "Base image: $base_image"
@@ -132,6 +149,7 @@ build_images() {
     echo "Lib dir: $lib_dir"
     echo "Image name suffix: $image_name_suffix"
     echo "Target: $target"
+    echo "Version: $VERSION"
 
     set -x
     docker buildx bake --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
@@ -142,8 +160,8 @@ build_images() {
         --set "*.args.BASE_IMAGE=$base_image" \
         --set "*.args.SETUP_ARGS=$setup_args" \
         --set "*.args.LIB_DIR=$lib_dir" \
-        --set "base.tags=ghcr.io/amr4serene/mowbot-base:latest" \
-        --set "base-cuda.tags=ghcr.io/amr4serene/mowbot-base:cuda-latest"
+        --set "base.tags=ghcr.io/amr4serene/mowbot:base" \
+        --set "base-cuda.tags=ghcr.io/amr4serene/mowbot:base-cuda"
     docker buildx bake --load --progress=plain -f "$SCRIPT_DIR/docker-bake.hcl" -f "$SCRIPT_DIR/docker-bake-cuda.hcl" \
         --set "*.context=$WORKSPACE_ROOT" \
         --set "*.ssh=default" \
@@ -153,10 +171,10 @@ build_images() {
         --set "*.args.MOWBOT_BASE_CUDA_IMAGE=$mowbot_base_cuda_image" \
         --set "*.args.SETUP_ARGS=$setup_args" \
         --set "*.args.LIB_DIR=$lib_dir" \
-        --set "mowbot-devel.tags=ghcr.io/amr4serene/mowbot:mowbot-devel" \
-        --set "mowbot.tags=ghcr.io/amr4serene/mowbot:mowbot" \
-        --set "mowbot-devel-cuda.tags=ghcr.io/amr4serene/mowbot:mowbot-devel-cuda" \
-        --set "mowbot-cuda.tags=ghcr.io/amr4serene/mowbot:mowbot-cuda" \
+        --set "mowbot-devel.tags=ghcr.io/amr4serene/mowbot:dev,ghcr.io/amr4serene/mowbot:dev-$VERSION" \
+        --set "mowbot.tags=ghcr.io/amr4serene/mowbot:runtime,ghcr.io/amr4serene/mowbot:runtime-$VERSION" \
+        --set "mowbot-devel-cuda.tags=ghcr.io/amr4serene/mowbot:dev-cuda,ghcr.io/amr4serene/mowbot:dev-cuda-$VERSION" \
+        --set "mowbot-cuda.tags=ghcr.io/amr4serene/mowbot:runtime-cuda,ghcr.io/amr4serene/mowbot:runtime-cuda-$VERSION" \
         "$target$image_name_suffix"
     set +x
 }
@@ -170,6 +188,7 @@ remove_dangling_images() {
 parse_arguments "$@"
 set_cuda_options
 set_build_options
+set_version
 set_platform
 set_arch_lib_dir
 load_env
