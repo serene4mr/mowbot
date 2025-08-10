@@ -123,6 +123,20 @@ else
     ansible_args+=("--extra-vars" "install_devel=y")
 fi
 
+# Disable Docker restart when running in container environment or when explicitly requested
+echo "DEBUG: Checking container environment..."
+echo "DEBUG: /.dockerenv exists: $([ -f /.dockerenv ] && echo 'YES' || echo 'NO')"
+echo "DEBUG: /run/.containerenv exists: $([ -f /run/.containerenv ] && echo 'YES' || echo 'NO')"
+echo "DEBUG: Current PID 1 process: $(ps -p 1 -o comm= 2>/dev/null || echo 'unknown')"
+echo "DEBUG: MOWBOT_DISABLE_DOCKER_RESTART: ${MOWBOT_DISABLE_DOCKER_RESTART:-'not set'}"
+
+if [ -f /.dockerenv ] || [ -f /run/.containerenv ] || [ "$MOWBOT_DISABLE_DOCKER_RESTART" = "true" ]; then
+    echo "Container environment or explicit disable detected - disabling Docker restart"
+    ansible_args+=("--extra-vars" "nvidia_container_toolkit_restart_docker=false")
+else
+    echo "Host environment detected - Docker restart will be enabled"
+fi
+
 # Check downloading artifacts
 if [ "$option_yes" = "true" ] || [ "$option_download_artifacts" = "true" ]; then
     echo -e "\e[36mArtifacts will be downloaded to $option_data_dir\e[m"
