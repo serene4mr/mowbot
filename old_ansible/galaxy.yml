@@ -1,0 +1,20 @@
+# Required
+namespace: mowbot
+name: dev_env
+version: 0.1.0
+readme: README.md
+authors:
+  - Nguyen Ha Trung <trungnh.aitech@gmail.com>
+
+# Optional
+description: Set up development environment for mowbot project
+license:
+  - MIT # TODO: update later
+tags:
+  - mowbot
+dependencies: {}
+repository: "https://github.com/AMR4SERENE/mowbot"
+documentation: "https://github.com/AMR4SERENE/mowbot/REAMDME.md"
+homepage: "https://github.com/AMR4SERENE/mowbot"
+issues: "https://github.com/AMR4SERENE/mowbot/issues"
+build_ignore: []

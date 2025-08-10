@@ -1,0 +1,1 @@
+# Ansible COllection for mowbot

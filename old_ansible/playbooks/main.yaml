@@ -1,0 +1,60 @@
+- name: Set up source development environments for mowbot
+  hosts: localhost
+  connection: local
+  vars_prompt:
+    - name: prompt_install_nvidia
+      prompt: |-
+        [Warning] Some Mowbot components depend on the CUDA, cuDNN and TensorRT NVIDIA libraries which have end-user license agreements that should be reviewed before installation.
+        Install NVIDIA libraries? [y/N]
+      private: false
+    - name: prompt_download_artifacts
+      prompt: |-
+        [Warning] Should the ONNX model files and other artifacts be downloaded alongside setting up the development environment.
+        Download artifacts? [y/N]
+      private: false
+    - name: install_devel
+      prompt: |-
+        [Warning] Do you want to install recommended development tools for Mowbot? [y/N]
+      private: false
+      default: y
+
+  pre_tasks:
+    - name: Verify OS
+      ansible.builtin.fail:
+        msg: Only Ubuntu 22.04 is supported for this branch.
+      when: ansible_distribution_version != '22.04'
+
+    - name: Print args
+      ansible.builtin.debug:
+        msg:
+          - rosdistro: "{{ rosdistro }}"
+          - rmw_implementation: "{{ rmw_implementation }}"
+          - cuda_version: "{{ cuda_version }}"
+          - cudnn_version: "{{ cudnn_version }}"
+          - tensorrt_version: "{{ tensorrt_version }}"
+
+    - name: Show a warning if the NVIDIA libraries will not be installed
+      ansible.builtin.pause:
+        seconds: 10
+        prompt: |
+          [Warning] Skipping installation of NVIDIA libraries. Please manually install them if you plan to use any dependent components.
+      when: prompt_install_nvidia != 'y'
+
+  roles:
+    # Mowbot dependencies
+    - role: mowbot.dev_env.rmw_implementation
+    - role: mowbot.dev_env.build_tools
+
+    # Mowbot module dependencies
+    - role: mowbot.dev_env.cuda
+      when: prompt_install_nvidia == 'y'
+    - role: mowbot.dev_env.tensorrt
+      when: prompt_install_nvidia == 'y'
+
+    # Mowbot devel dependencies
+    - role: mowbot.dev_env.dev_tools
+      when: install_devel == 'y'
+  
+    # ONNX files and other artifacts
+    - role: mowbot.dev_env.artifacts
+      when: prompt_download_artifacts == 'y'
