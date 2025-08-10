@@ -5,25 +5,25 @@ These containers are offered to simplify the development and deployment of Mowbo
 ## Available Images
 
 ### Core Module (Current)
-- `ghcr.io/amr4serene/mowbot:core-dev` - Core development environment with full build tools
-- `ghcr.io/amr4serene/mowbot:core-dev-cuda` - Core development environment with CUDA support
-- `ghcr.io/amr4serene/mowbot:core-runtime` - Core production runtime environment
-- `ghcr.io/amr4serene/mowbot:core-runtime-cuda` - Core production runtime with CUDA support
+- `ghcr.io/serene4mr/mowbot:core-dev` - Core development environment with full build tools
+- `ghcr.io/serene4mr/mowbot:core-dev-cuda` - Core development environment with CUDA support
+- `ghcr.io/serene4mr/mowbot:core-runtime` - Core production runtime environment
+- `ghcr.io/serene4mr/mowbot:core-runtime-cuda` - Core production runtime with CUDA support
 
 ### Base Images
-- `ghcr.io/amr4serene/mowbot:base` - Base image with ROS2 and dependencies
-- `ghcr.io/amr4serene/mowbot:base-cuda` - Base image with CUDA runtime
+- `ghcr.io/serene4mr/mowbot:base` - Base image with ROS2 and dependencies
+- `ghcr.io/serene4mr/mowbot:base-cuda` - Base image with CUDA runtime
 
 ### Future Modules (Planned)
-- `ghcr.io/amr4serene/mowbot:navigation-dev` - Navigation module development
-- `ghcr.io/amr4serene/mowbot:navigation-runtime` - Navigation module runtime
-- `ghcr.io/amr4serene/mowbot:perception-dev` - Perception module development
-- `ghcr.io/amr4serene/mowbot:perception-runtime` - Perception module runtime
+- `ghcr.io/serene4mr/mowbot:navigation-dev` - Navigation module development
+- `ghcr.io/serene4mr/mowbot:navigation-runtime` - Navigation module runtime
+- `ghcr.io/serene4mr/mowbot:perception-dev` - Perception module development
+- `ghcr.io/serene4mr/mowbot:perception-runtime` - Perception module runtime
 
 ## Version Support
 All images support both `latest` and versioned tags:
-- `ghcr.io/amr4serene/mowbot:dev` (latest)
-- `ghcr.io/amr4serene/mowbot:dev-v1.0.0` (specific version)
+- `ghcr.io/serene4mr/mowbot:core-dev` (latest)
+- `ghcr.io/serene4mr/mowbot:core-dev-v1.0.0` (specific version)
 
 ## Usage
 
@@ -81,20 +81,20 @@ All images support both `latest` and versioned tags:
 
 ```bash
 # Pull latest core development image
-docker pull ghcr.io/amr4serene/mowbot:core-dev
+docker pull ghcr.io/serene4mr/mowbot:core-dev
 
 # Run core development container
 docker run -it --rm \
   -v $(pwd):/workspace \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   -e DISPLAY=$DISPLAY \
-  ghcr.io/amr4serene/mowbot:core-dev
+  ghcr.io/serene4mr/mowbot:core-dev
 
 # Run with CUDA
 docker run -it --rm \
   --gpus all \
   -v $(pwd):/workspace \
-  ghcr.io/amr4serene/mowbot:core-dev-cuda
+  ghcr.io/serene4mr/mowbot:core-dev-cuda
 ```
 
 ## Multi-stage Dockerfile structure
@@ -121,10 +121,10 @@ These files will be used in the subsequent stages:
 
 By generating only the package list files and copying them to the subsequent stages, the dependency packages will not be reinstalled during the container build process unless the dependency packages change.
 
-### `mowbot-devel` → `ghcr.io/amr4serene/mowbot:dev`
+### `mowbot-devel` → `ghcr.io/serene4mr/mowbot:core-dev`
 
 Development environment with full build tools, debugging capabilities, and development dependencies.
 
-### `mowbot` → `ghcr.io/amr4serene/mowbot:runtime`
+### `mowbot` → `ghcr.io/serene4mr/mowbot:core-runtime`
 
 Production runtime environment optimized for deployment with minimal size and security hardening.

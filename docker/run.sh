@@ -123,7 +123,7 @@ parse_arguments() {
 
 # Determine image name
 get_image_name() {
-    local base_name="ghcr.io/amr4serene/mowbot"
+    local base_name="ghcr.io/serene4mr/mowbot"
     
     # Default to core module
     local module=${MODULE:-core}

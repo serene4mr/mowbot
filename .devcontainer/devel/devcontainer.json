@@ -8,8 +8,8 @@
             "--build-arg", "BASE_IMAGE=ros:humble-ros-base-jammy"
         ]
     },
-    // "image": "ghcr.io/amr4serene/mowbot:dev",
-    // "image": "ghcr.io/amr4serene/mowbot:dev-cuda",
+    // "image": "ghcr.io/serene4mr/mowbot:core-dev",
+    // "image": "ghcr.io/serene4mr/mowbot:core-dev-cuda",
     "runArgs": [
         "--name", "mowbot_dev",
         "--net", "host",
