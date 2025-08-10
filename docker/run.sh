@@ -125,15 +125,23 @@ parse_arguments() {
 get_image_name() {
     local base_name="ghcr.io/serene4mr/mowbot"
     
-    # Default to core module
-    local module=${MODULE:-core}
+    # Default to main module
+    local module=${MODULE:-main}
     local image_name=""
     
     if [ "$USE_RUNTIME" = "true" ]; then
         if [ "$USE_CUDA" = "true" ]; then
-            image_name="${base_name}:${module}-runtime-cuda"
+            if [ "$module" = "main" ]; then
+                image_name="${base_name}:main-cuda"
+            else
+                image_name="${base_name}:${module}-runtime-cuda"
+            fi
         else
-            image_name="${base_name}:${module}-runtime"
+            if [ "$module" = "main" ]; then
+                image_name="${base_name}:main"
+            else
+                image_name="${base_name}:${module}-runtime"
+            fi
         fi
     else
         if [ "$USE_CUDA" = "true" ]; then

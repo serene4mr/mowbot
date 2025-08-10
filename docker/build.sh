@@ -11,14 +11,14 @@ print_help() {
     echo "  --no-cuda       Disable CUDA support"
     echo "  --platform      Specify the platform (default: current platform)"
     echo "  --devel-only    Build development image only (targets: main-dev)"
-    echo "  --target        Specify the target image (default: main-runtime or main-dev if --devel-only is set)"
+    echo "  --target        Specify the target image (default: main or main-dev if --devel-only is set)"
     echo "  --version       Specify the version tag (default: latest)"
     echo ""
     echo "Available targets:"
     echo "  main-dev        → ghcr.io/serene4mr/mowbot:main-dev"
-    echo "  main-runtime    → ghcr.io/serene4mr/mowbot:main-runtime"
+    echo "  main            → ghcr.io/serene4mr/mowbot:main"
     echo "  main-dev-cuda   → ghcr.io/serene4mr/mowbot:main-dev-cuda"
-    echo "  main-runtime-cuda → ghcr.io/serene4mr/mowbot:main-runtime-cuda"
+    echo "  main-cuda       → ghcr.io/serene4mr/mowbot:main-cuda"
     echo ""
     echo "Note: The --platform option should be one of 'linux/amd64' or 'linux/arm64'."
 }
@@ -81,7 +81,7 @@ set_build_options() {
         if [ "$option_devel_only" = "true" ]; then
             target="main-dev"
         else
-            target="main-runtime"
+            target="main"
         fi
     fi
 }
@@ -178,9 +178,9 @@ build_images() {
         --set "*.args.SETUP_ARGS=$setup_args" \
         --set "*.args.LIB_DIR=$lib_dir" \
         --set "main-dev.tags=ghcr.io/serene4mr/mowbot:main-dev-$VERSION" \
-        --set "main-runtime.tags=ghcr.io/serene4mr/mowbot:main-runtime-$VERSION" \
+        --set "main.tags=ghcr.io/serene4mr/mowbot:main-$VERSION" \
         --set "main-dev-cuda.tags=ghcr.io/serene4mr/mowbot:main-dev-cuda-$VERSION" \
-        --set "main-runtime-cuda.tags=ghcr.io/serene4mr/mowbot:main-runtime-cuda-$VERSION" \
+        --set "main-cuda.tags=ghcr.io/serene4mr/mowbot:main-cuda-$VERSION" \
         "$target$image_name_suffix"
     set +x
 }

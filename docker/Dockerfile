@@ -50,7 +50,7 @@ CMD ["/bin/bash"]
 ##########################################################################
 
 # hadolint ignore=DL3006
-FROM $MOWBOT_BASE_IMAGE AS main-runtime
+FROM $MOWBOT_BASE_IMAGE AS main
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG ROS_DISTRO
 ARG LIB_DIR
@@ -61,7 +61,7 @@ CMD ["/bin/bash"]
 ##########################################################################
 
 # hadolint ignore=DL3006
-FROM $MOWBOT_BASE_CUDA_IMAGE AS main-runtime-cuda
+FROM $MOWBOT_BASE_CUDA_IMAGE AS main-cuda
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG ROS_DISTRO
 ARG LIB_DIR

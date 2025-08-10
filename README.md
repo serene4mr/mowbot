@@ -18,7 +18,7 @@ colcon build
 
 ### Available Docker Images
 - **`ghcr.io/serene4mr/mowbot:main-dev`** - Development environment with full build tools
-- **`ghcr.io/serene4mr/mowbot:main-runtime`** - Production runtime environment
+- **`ghcr.io/serene4mr/mowbot:main`** - Production runtime environment
 - **CUDA variants available** - Add `-cuda` suffix for GPU acceleration
 
 ## Documentation
@@ -48,7 +48,8 @@ colcon build
    ```
 
 2. **Choose your development approach:**
-   - **Docker (Recommended):** `./docker/run.sh`
+   - **VS Code DevContainer (Recommended):** Open in VS Code → Dev Containers extension
+   - **Docker CLI:** `./docker/run.sh`
    - **Native:** `./setup-dev-env.sh`
 
 3. **Build the project:**

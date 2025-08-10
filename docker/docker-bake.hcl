@@ -1,14 +1,14 @@
 group "default" {
   targets = [
     "main-dev",
-    "main-runtime"
+    "main"
   ]
 }
 
 
 // For docker/metadata-action
 target "docker-metadata-action-main-dev" {}
-target "docker-metadata-action-main-runtime" {}
+target "docker-metadata-action-main" {}
 
 target "main-dev" {
   inherits = ["docker-metadata-action-main-dev"]
@@ -16,8 +16,8 @@ target "main-dev" {
   target = "main-dev"
 }
 
-target "main-runtime" {
-  inherits = ["docker-metadata-action-main-runtime"]
+target "main" {
+  inherits = ["docker-metadata-action-main"]
   dockerfile = "docker/Dockerfile"
-  target = "main-runtime"
+  target = "main"
 }

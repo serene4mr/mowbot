@@ -1,0 +1,32 @@
+{
+    "name": "mowbot_dev_cuda",
+    "build": {
+        "dockerfile": "../Dockerfile",
+        "context": "..",
+        "options": [
+            "-t", "mowbot_dev_cuda",
+            "--build-arg", "BASE_IMAGE=ghcr.io/serene4mr/mowbot:main-dev-cuda-latest"
+        ]
+    },
+    // "image": "ghcr.io/serene4mr/mowbot:main-dev-cuda",
+    "runArgs": [
+        "--name", "mowbot_dev_cuda",
+        "--net", "host",
+        "--privileged",
+        "--gpus", "all",
+        "-v", "/dev:/dev",
+        "-v", "/tmp/.X11-unix:/tmp/.X11-unix",
+        "-e", "DISPLAY",
+        "-e", "NVIDIA_VISIBLE_DEVICES=all",
+        "-e", "NVIDIA_DRIVER_CAPABILITIES=all"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-vscode.cpptools-extension-pack",
+                "ms-vscode.cmake-tools"
+            ]
+        }
+    }
+  }

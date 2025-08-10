@@ -7,8 +7,8 @@ These containers are offered to simplify the development and deployment of Mowbo
 ### Main Module (Full Version)
 - `ghcr.io/serene4mr/mowbot:main-dev` - Main development environment with full build tools
 - `ghcr.io/serene4mr/mowbot:main-dev-cuda` - Main development environment with CUDA support
-- `ghcr.io/serene4mr/mowbot:main-runtime` - Main production runtime environment
-- `ghcr.io/serene4mr/mowbot:main-runtime-cuda` - Main production runtime with CUDA support
+- `ghcr.io/serene4mr/mowbot:main` - Main production runtime environment
+- `ghcr.io/serene4mr/mowbot:main-cuda` - Main production runtime with CUDA support
 
 ### Base Images
 - `ghcr.io/serene4mr/mowbot:base` - Base image with ROS2 and dependencies
@@ -117,7 +117,7 @@ The ROS dependency package list files will be generated.
 These files will be used in the subsequent stages:
 
 - `main-dev` (maps to `dev` tag)
-- `main-runtime` (maps to `runtime` tag)
+- `main` (main production runtime)
 
 By generating only the package list files and copying them to the subsequent stages, the dependency packages will not be reinstalled during the container build process unless the dependency packages change.
 
@@ -125,6 +125,6 @@ By generating only the package list files and copying them to the subsequent sta
 
 Development environment with full build tools, debugging capabilities, and development dependencies.
 
-### `main-runtime` → `ghcr.io/serene4mr/mowbot:main-runtime`
+### `main` → `ghcr.io/serene4mr/mowbot:main`
 
 Production runtime environment optimized for deployment with minimal size and security hardening.
