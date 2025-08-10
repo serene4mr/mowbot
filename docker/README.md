@@ -4,11 +4,11 @@ These containers are offered to simplify the development and deployment of Mowbo
 
 ## Available Images
 
-### Core Module (Current)
-- `ghcr.io/serene4mr/mowbot:core-dev` - Core development environment with full build tools
-- `ghcr.io/serene4mr/mowbot:core-dev-cuda` - Core development environment with CUDA support
-- `ghcr.io/serene4mr/mowbot:core-runtime` - Core production runtime environment
-- `ghcr.io/serene4mr/mowbot:core-runtime-cuda` - Core production runtime with CUDA support
+### Main Module (Full Version)
+- `ghcr.io/serene4mr/mowbot:main-dev` - Main development environment with full build tools
+- `ghcr.io/serene4mr/mowbot:main-dev-cuda` - Main development environment with CUDA support
+- `ghcr.io/serene4mr/mowbot:main-runtime` - Main production runtime environment
+- `ghcr.io/serene4mr/mowbot:main-runtime-cuda` - Main production runtime with CUDA support
 
 ### Base Images
 - `ghcr.io/serene4mr/mowbot:base` - Base image with ROS2 and dependencies
@@ -22,8 +22,8 @@ These containers are offered to simplify the development and deployment of Mowbo
 
 ## Version Support
 All images support both `latest` and versioned tags:
-- `ghcr.io/serene4mr/mowbot:core-dev` (latest)
-- `ghcr.io/serene4mr/mowbot:core-dev-v1.0.0` (specific version)
+- `ghcr.io/serene4mr/mowbot:main-dev` (latest)
+- `ghcr.io/serene4mr/mowbot:main-dev-v1.0.0` (specific version)
 
 ## Usage
 
@@ -80,21 +80,21 @@ All images support both `latest` and versioned tags:
 ### Docker Commands
 
 ```bash
-# Pull latest core development image
-docker pull ghcr.io/serene4mr/mowbot:core-dev
+# Pull latest main development image
+docker pull ghcr.io/serene4mr/mowbot:main-dev
 
-# Run core development container
+# Run main development container
 docker run -it --rm \
   -v $(pwd):/workspace \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   -e DISPLAY=$DISPLAY \
-  ghcr.io/serene4mr/mowbot:core-dev
+  ghcr.io/serene4mr/mowbot:main-dev
 
 # Run with CUDA
 docker run -it --rm \
   --gpus all \
   -v $(pwd):/workspace \
-  ghcr.io/serene4mr/mowbot:core-dev-cuda
+  ghcr.io/serene4mr/mowbot:main-dev-cuda
 ```
 
 ## Multi-stage Dockerfile structure
@@ -121,10 +121,10 @@ These files will be used in the subsequent stages:
 
 By generating only the package list files and copying them to the subsequent stages, the dependency packages will not be reinstalled during the container build process unless the dependency packages change.
 
-### `mowbot-devel` → `ghcr.io/serene4mr/mowbot:core-dev`
+### `mowbot-devel` → `ghcr.io/serene4mr/mowbot:main-dev`
 
 Development environment with full build tools, debugging capabilities, and development dependencies.
 
-### `mowbot` → `ghcr.io/serene4mr/mowbot:core-runtime`
+### `mowbot` → `ghcr.io/serene4mr/mowbot:main-runtime`
 
 Production runtime environment optimized for deployment with minimal size and security hardening.

@@ -15,10 +15,10 @@ print_help() {
     echo "  --version       Specify the version tag (default: latest)"
     echo ""
     echo "Available targets:"
-    echo "  mowbot-devel    → ghcr.io/serene4mr/mowbot:core-dev"
-    echo "  mowbot          → ghcr.io/serene4mr/mowbot:core-runtime"
-    echo "  mowbot-devel-cuda → ghcr.io/serene4mr/mowbot:core-dev-cuda"
-    echo "  mowbot-cuda     → ghcr.io/serene4mr/mowbot:core-runtime-cuda"
+    echo "  mowbot-devel    → ghcr.io/serene4mr/mowbot:main-dev"
+    echo "  mowbot          → ghcr.io/serene4mr/mowbot:main-runtime"
+    echo "  mowbot-devel-cuda → ghcr.io/serene4mr/mowbot:main-dev-cuda"
+    echo "  mowbot-cuda     → ghcr.io/serene4mr/mowbot:main-runtime-cuda"
     echo ""
     echo "Note: The --platform option should be one of 'linux/amd64' or 'linux/arm64'."
 }
@@ -177,10 +177,10 @@ build_images() {
         --set "*.args.MOWBOT_BASE_CUDA_IMAGE=$mowbot_base_cuda_image" \
         --set "*.args.SETUP_ARGS=$setup_args" \
         --set "*.args.LIB_DIR=$lib_dir" \
-        --set "mowbot-devel.tags=ghcr.io/serene4mr/mowbot:core-dev,ghcr.io/serene4mr/mowbot:core-dev-$VERSION" \
-        --set "mowbot.tags=ghcr.io/serene4mr/mowbot:core-runtime,ghcr.io/serene4mr/mowbot:core-runtime-$VERSION" \
-        --set "mowbot-devel-cuda.tags=ghcr.io/serene4mr/mowbot:core-dev-cuda,ghcr.io/serene4mr/mowbot:core-dev-cuda-$VERSION" \
-        --set "mowbot-cuda.tags=ghcr.io/serene4mr/mowbot:core-runtime-cuda,ghcr.io/serene4mr/mowbot:core-runtime-cuda-$VERSION" \
+        --set "mowbot-devel.tags=ghcr.io/serene4mr/mowbot:main-dev,ghcr.io/serene4mr/mowbot:main-dev-$VERSION" \
+        --set "mowbot.tags=ghcr.io/serene4mr/mowbot:main-runtime,ghcr.io/serene4mr/mowbot:main-runtime-$VERSION" \
+        --set "mowbot-devel-cuda.tags=ghcr.io/serene4mr/mowbot:main-dev-cuda,ghcr.io/serene4mr/mowbot:main-dev-cuda-$VERSION" \
+        --set "mowbot-cuda.tags=ghcr.io/serene4mr/mowbot:main-runtime-cuda,ghcr.io/serene4mr/mowbot:main-runtime-cuda-$VERSION" \
         "$target$image_name_suffix"
     set +x
 }
