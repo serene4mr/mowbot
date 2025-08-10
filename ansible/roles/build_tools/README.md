@@ -8,6 +8,8 @@ This role installs build tools for building Mowbot.
 
 ## Inputs
 
+None.
+
 ## Manual Installation
 
 ```bash

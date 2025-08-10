@@ -1,0 +1,10 @@
+# GeographicLib role default variables
+
+# GeographicLib package name
+geographiclib_package: libgeographic-dev
+
+# GeographicLib version (latest by default)
+geographiclib_version: latest
+
+# Whether to verify installation
+geographiclib_verify_installation: true

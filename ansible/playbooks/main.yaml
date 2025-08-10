@@ -44,6 +44,7 @@
     # Mowbot dependencies
     - role: mowbot.dev_env.rmw_implementation
     - role: mowbot.dev_env.build_tools
+    - role: mowbot.dev_env.geographiclib
 
     # Mowbot module dependencies
     - role: mowbot.dev_env.cuda

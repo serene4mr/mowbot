@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  author: Mowbot Team
+  description: Install GeographicLib development package for GNSS coordinate transformations
+  company: AMR4SERENE
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - geographiclib
+    - gnss
+    - coordinate-transformations
+    - robotics
+
+dependencies: []

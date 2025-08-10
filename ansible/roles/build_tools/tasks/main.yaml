@@ -5,13 +5,6 @@
     state: latest
     update_cache: true
 
-- name: Install GeographicLib development package
-  become: true
-  ansible.builtin.apt:
-    name: libgeographic-dev
-    state: latest
-    update_cache: true
-
 - name: Add CCACHE_DIR to .bashrc
   ansible.builtin.lineinfile:
     dest: ~/.bashrc
