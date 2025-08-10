@@ -127,25 +127,28 @@ get_image_name() {
     
     # Default to core module
     local module=${MODULE:-core}
+    local image_name=""
     
     if [ "$USE_RUNTIME" = "true" ]; then
         if [ "$USE_CUDA" = "true" ]; then
-            echo "${base_name}:${module}-runtime-cuda"
+            image_name="${base_name}:${module}-runtime-cuda"
         else
-            echo "${base_name}:${module}-runtime"
+            image_name="${base_name}:${module}-runtime"
         fi
     else
         if [ "$USE_CUDA" = "true" ]; then
-            echo "${base_name}:${module}-dev-cuda"
+            image_name="${base_name}:${module}-dev-cuda"
         else
-            echo "${base_name}:${module}-dev"
+            image_name="${base_name}:${module}-dev"
         fi
     fi
     
     # Add version if not latest
     if [ "$VERSION" != "latest" ]; then
-        echo "-${VERSION}"
+        image_name="${image_name}-${VERSION}"
     fi
+    
+    echo "$image_name"
 }
 
 # Build docker run command
