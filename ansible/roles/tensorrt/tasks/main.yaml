@@ -7,7 +7,11 @@
 - name: Install cuDNN and TensorRT runtime packages
   become: true
   ansible.builtin.apt:
-    name: "{{ tensorrt_runtime_packages }}"
+    name: 
+      - "libcudnn8={{ cudnn_version }}"
+      - "libnvinfer10={{ tensorrt_version }}"
+      - "libnvinfer-plugin10={{ tensorrt_version }}"
+      - "libnvonnxparsers10={{ tensorrt_version }}"
     allow_change_held_packages: true
     allow_downgrade: true
     update_cache: false
@@ -16,7 +20,13 @@
 - name: Install cuDNN and TensorRT development packages
   become: true
   ansible.builtin.apt:
-    name: "{{ tensorrt_dev_packages }}"
+    name: 
+      - "libcudnn8-dev={{ cudnn_version }}"
+      - "libnvinfer-dev={{ tensorrt_version }}"
+      - "libnvinfer-plugin-dev={{ tensorrt_version }}"
+      - "libnvinfer-headers-dev={{ tensorrt_version }}"
+      - "libnvinfer-headers-plugin-dev={{ tensorrt_version }}"
+      - "libnvonnxparsers-dev={{ tensorrt_version }}"
     allow_change_held_packages: true
     allow_downgrade: true
     update_cache: false

@@ -12,20 +12,22 @@ tensorrt_verify_installation: true
 tensorrt_hold_packages: true
 
 # Runtime packages
+# Note: These should be the actual package names, not version numbers
 tensorrt_runtime_packages:
-  - "libcudnn8={{ cudnn_version }}"
-  - "libnvinfer10={{ tensorrt_version }}"
-  - "libnvinfer-plugin10={{ tensorrt_version }}"
-  - "libnvonnxparsers10={{ tensorrt_version }}"
+  - "libcudnn8"
+  - "libnvinfer10"
+  - "libnvinfer-plugin10"
+  - "libnvonnxparsers10"
 
 # Development packages
+# Note: These should be the actual package names, not version numbers
 tensorrt_dev_packages:
-  - "libcudnn8-dev={{ cudnn_version }}"
-  - "libnvinfer-dev={{ tensorrt_version }}"
-  - "libnvinfer-plugin-dev={{ tensorrt_version }}"
-  - "libnvinfer-headers-dev={{ tensorrt_version }}"
-  - "libnvinfer-headers-plugin-dev={{ tensorrt_version }}"
-  - "libnvonnxparsers-dev={{ tensorrt_version }}"
+  - "libcudnn8-dev"
+  - "libnvinfer-dev"
+  - "libnvinfer-plugin-dev"
+  - "libnvinfer-headers-dev"
+  - "libnvinfer-headers-plugin-dev"
+  - "libnvonnxparsers-dev"
 
 # Package hold list
 tensorrt_hold_runtime_packages:

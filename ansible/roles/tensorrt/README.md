@@ -23,9 +23,9 @@ This is essential for:
 
 | Name | Default | Description |
 |------|---------|-------------|
-| `tensorrt_version` | `"8.6.1.6"` | TensorRT version to install |
+| `tensorrt_version` | `"8.6.1.6"` | TensorRT version to install (can be full package spec like `10.8.0.43-1+cuda12.8`) |
 | `tensorrt_cuda_version` | `"12.0"` | CUDA version compatibility |
-| `cudnn_version` | `"8.9.7.29"` | cuDNN version to install |
+| `cudnn_version` | `"8.9.7.29"` | cuDNN version to install (can be full package spec like `8.9.7.29-1+cuda12.2`) |
 | `tensorrt_install_devel` | `true` | Whether to install development packages |
 | `tensorrt_verify_installation` | `true` | Whether to verify installation success |
 | `tensorrt_hold_packages` | `true` | Whether to hold packages from upgrades |
