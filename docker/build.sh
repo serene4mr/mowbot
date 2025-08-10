@@ -15,6 +15,8 @@ print_help() {
     echo "  --version       Specify the version tag (default: latest)"
     echo ""
     echo "Available targets:"
+    echo "  base            → ghcr.io/serene4mr/mowbot:base"
+    echo "  base-cuda       → ghcr.io/serene4mr/mowbot:base-cuda"
     echo "  main-dev        → ghcr.io/serene4mr/mowbot:main-dev"
     echo "  main            → ghcr.io/serene4mr/mowbot:main"
     echo "  main-dev-cuda   → ghcr.io/serene4mr/mowbot:main-dev-cuda"
@@ -158,30 +160,50 @@ build_images() {
     echo "Version: $VERSION"
 
     set -x
-    docker buildx bake --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
-        --set "*.context=$WORKSPACE_ROOT" \
-        --set "*.ssh=default" \
-        --set "*.platform=$platform" \
-        --set "*.args.ROS_DISTRO=$rosdistro" \
-        --set "*.args.BASE_IMAGE=$base_image" \
-        --set "*.args.SETUP_ARGS=$setup_args" \
-        --set "*.args.LIB_DIR=$lib_dir" \
-        --set "base.tags=ghcr.io/serene4mr/mowbot:base" \
-        --set "base-cuda.tags=ghcr.io/serene4mr/mowbot:base-cuda"
-    docker buildx bake --load --progress=plain -f "$SCRIPT_DIR/docker-bake.hcl" -f "$SCRIPT_DIR/docker-bake-cuda.hcl" \
-        --set "*.context=$WORKSPACE_ROOT" \
-        --set "*.ssh=default" \
-        --set "*.platform=$platform" \
-        --set "*.args.ROS_DISTRO=$rosdistro" \
-        --set "*.args.MOWBOT_BASE_IMAGE=$mowbot_base_image" \
-        --set "*.args.MOWBOT_BASE_CUDA_IMAGE=$mowbot_base_cuda_image" \
-        --set "*.args.SETUP_ARGS=$setup_args" \
-        --set "*.args.LIB_DIR=$lib_dir" \
-        --set "main-dev.tags=ghcr.io/serene4mr/mowbot:main-dev-$VERSION" \
-        --set "main.tags=ghcr.io/serene4mr/mowbot:main-$VERSION" \
-        --set "main-dev-cuda.tags=ghcr.io/serene4mr/mowbot:main-dev-cuda-$VERSION" \
-        --set "main-cuda.tags=ghcr.io/serene4mr/mowbot:main-cuda-$VERSION" \
-        "$target$image_name_suffix"
+    
+    # Build base images if target is base or base-cuda
+    if [[ "$target" == "base" || "$target" == "base-cuda" ]]; then
+        docker buildx bake --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
+            --set "*.context=$WORKSPACE_ROOT" \
+            --set "*.ssh=default" \
+            --set "*.platform=$platform" \
+            --set "*.args.ROS_DISTRO=$rosdistro" \
+            --set "*.args.BASE_IMAGE=$base_image" \
+            --set "*.args.SETUP_ARGS=$setup_args" \
+            --set "*.args.LIB_DIR=$lib_dir" \
+            --set "base.tags=ghcr.io/serene4mr/mowbot:base" \
+            --set "base-cuda.tags=ghcr.io/serene4mr/mowbot:base-cuda" \
+            "$target"
+    else
+        # Build base images first (needed as dependencies for main images)
+        docker buildx bake --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
+            --set "*.context=$WORKSPACE_ROOT" \
+            --set "*.ssh=default" \
+            --set "*.platform=$platform" \
+            --set "*.args.ROS_DISTRO=$rosdistro" \
+            --set "*.args.BASE_IMAGE=$base_image" \
+            --set "*.args.SETUP_ARGS=$setup_args" \
+            --set "*.args.LIB_DIR=$lib_dir" \
+            --set "base.tags=ghcr.io/serene4mr/mowbot:base" \
+            --set "base-cuda.tags=ghcr.io/serene4mr/mowbot:base-cuda"
+        
+        # Then build the requested main image
+        docker buildx bake --load --progress=plain -f "$SCRIPT_DIR/docker-bake.hcl" -f "$SCRIPT_DIR/docker-bake-cuda.hcl" \
+            --set "*.context=$WORKSPACE_ROOT" \
+            --set "*.ssh=default" \
+            --set "*.platform=$platform" \
+            --set "*.args.ROS_DISTRO=$rosdistro" \
+            --set "*.args.MOWBOT_BASE_IMAGE=$mowbot_base_image" \
+            --set "*.args.MOWBOT_BASE_CUDA_IMAGE=$mowbot_base_cuda_image" \
+            --set "*.args.SETUP_ARGS=$setup_args" \
+            --set "*.args.LIB_DIR=$lib_dir" \
+            --set "main-dev.tags=ghcr.io/serene4mr/mowbot:main-dev-$VERSION" \
+            --set "main.tags=ghcr.io/serene4mr/mowbot:main-$VERSION" \
+            --set "main-dev-cuda.tags=ghcr.io/serene4mr/mowbot:main-dev-cuda-$VERSION" \
+            --set "main-cuda.tags=ghcr.io/serene4mr/mowbot:main-cuda-$VERSION" \
+            "$target$image_name_suffix"
+    fi
+    
     set +x
 }
 
