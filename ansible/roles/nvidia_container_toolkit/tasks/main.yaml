@@ -1,6 +1,6 @@
 - name: Get system architecture
   ansible.builtin.set_fact:
-    system_architecture: "{{ ansible_architecture }}"
+    system_architecture: "{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"
 
 - name: Add NVIDIA container toolkit GPG key
   become: true
@@ -12,7 +12,7 @@
 - name: Add NVIDIA container toolkit repository
   become: true
   ansible.builtin.apt_repository:
-    repo: "deb [signed-by={{ nvidia_container_toolkit_keyring }}] {{ nvidia_container_toolkit_repo_url }}/{{ system_architecture }} /"
+    repo: "deb [signed-by={{ nvidia_container_toolkit_keyring }}] {{ nvidia_container_toolkit_repo_url }} /"
     state: present
     filename: "{{ nvidia_container_toolkit_repo_filename }}"
     update_cache: true
