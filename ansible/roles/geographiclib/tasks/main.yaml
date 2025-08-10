@@ -1,22 +1,30 @@
+- name: Check if GeographicLib is already installed
+  ansible.builtin.command: pkg-config --exists GeographicLib
+  changed_when: false
+  failed_when: false
+  register: geographiclib_already_installed
+
 - name: Install GeographicLib development package
   become: true
   ansible.builtin.apt:
-    name: libgeographic-dev
-    state: latest
+    name: "{{ geographiclib_package }}"
+    state: "{{ geographiclib_version }}"
     update_cache: true
+  when: geographiclib_already_installed.rc != 0
 
 - name: Verify GeographicLib installation
   ansible.builtin.command: pkg-config --exists GeographicLib
   changed_when: false
   failed_when: false
   register: geographiclib_check
+  when: geographiclib_verify_installation | bool
 
 - name: Display GeographicLib installation status
   ansible.builtin.debug:
-    msg: "GeographicLib development package installed successfully"
-  when: geographiclib_check.rc == 0
+    msg: "✅ GeographicLib development package installed successfully"
+  when: geographiclib_verify_installation | bool and geographiclib_check.rc == 0
 
 - name: Display GeographicLib installation warning
   ansible.builtin.debug:
-    msg: "Warning: GeographicLib installation may have failed. Manual verification recommended."
-  when: geographiclib_check.rc != 0
+    msg: "⚠️ Warning: GeographicLib installation may have failed. Manual verification recommended."
+  when: geographiclib_verify_installation | bool and geographiclib_check.rc != 0

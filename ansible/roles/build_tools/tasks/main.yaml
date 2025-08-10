@@ -1,14 +1,19 @@
-- name: Install ccache
+- name: Install build tools
   become: true
   ansible.builtin.apt:
-    name: ccache
+    name:
+      - ccache
+      - build-essential
+      - cmake
+      - ninja-build
+      - pkg-config
     state: latest
     update_cache: true
 
 - name: Add CCACHE_DIR to .bashrc
   ansible.builtin.lineinfile:
     dest: ~/.bashrc
-    line: export CCACHE_DIR="/var/tmp/ccache"
+    line: "export CCACHE_DIR={{ ccache_dir }}"
     state: present
     create: true
     mode: 0644
@@ -40,12 +45,10 @@
 
 - name: Create ccache directory
   ansible.builtin.file:
-    path: /var/tmp/ccache
+    path: "{{ ccache_dir }}"
     state: directory
     mode: 0755
 
-- name: Source .bashrc
-  ansible.builtin.shell: source ~/.bashrc
-  args:
-    executable: /bin/bash
+- name: Configure ccache max size
+  ansible.builtin.shell: ccache -M {{ ccache_max_size }}
   changed_when: false

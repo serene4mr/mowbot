@@ -24,14 +24,17 @@
         msg: Only Ubuntu 22.04 is supported for this branch.
       when: ansible_distribution_version != '22.04'
 
-    - name: Print args
+    - name: Print configuration
       ansible.builtin.debug:
         msg:
-          - rosdistro: "{{ rosdistro }}"
-          - rmw_implementation: "{{ rmw_implementation }}"
-          - cuda_version: "{{ cuda_version }}"
-          - cudnn_version: "{{ cudnn_version }}"
-          - tensorrt_version: "{{ tensorrt_version }}"
+          - "ROS 2 Distribution: {{ rosdistro | default('humble') }}"
+          - "RMW Implementation: {{ rmw_implementation | default('rmw_cyclonedds_cpp') }}"
+          - "CUDA Version: {{ cuda_version | default('12.4') }}"
+          - "cuDNN Version: {{ cudnn_version | default('8.9.7.29') }}"
+          - "TensorRT Version: {{ tensorrt_version | default('8.6.1.6') }}"
+          - "Install NVIDIA: {{ prompt_install_nvidia | default('N') }}"
+          - "Download Artifacts: {{ prompt_download_artifacts | default('N') }}"
+          - "Install Dev Tools: {{ install_devel | default('y') }}"
 
     - name: Show a warning if the NVIDIA libraries will not be installed
       ansible.builtin.pause:
@@ -41,21 +44,25 @@
       when: prompt_install_nvidia != 'y'
 
   roles:
-    # Mowbot dependencies
-    - role: mowbot.dev_env.rmw_implementation
+    # Core development environment (always installed)
     - role: mowbot.dev_env.build_tools
     - role: mowbot.dev_env.geographiclib
+    - role: mowbot.dev_env.rmw_implementation
 
-    # Mowbot module dependencies
+    # GPU acceleration (conditional)
     - role: mowbot.dev_env.cuda
       when: prompt_install_nvidia == 'y'
     - role: mowbot.dev_env.tensorrt
       when: prompt_install_nvidia == 'y'
+    - role: mowbot.dev_env.nvidia_container_toolkit
+      when: prompt_install_nvidia == 'y'
+    - role: mowbot.dev_env.kisak_mesa
+      when: prompt_install_nvidia == 'y'
 
-    # Mowbot devel dependencies
+    # Development tools (conditional)
     - role: mowbot.dev_env.dev_tools
       when: install_devel == 'y'
   
-    # ONNX files and other artifacts
+    # Artifacts and assets (conditional)
     - role: mowbot.dev_env.artifacts
       when: prompt_download_artifacts == 'y'

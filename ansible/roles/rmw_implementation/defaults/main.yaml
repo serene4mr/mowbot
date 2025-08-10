@@ -1,0 +1,9 @@
+---
+# Default ROS 2 distribution
+rosdistro: humble
+
+# Default RMW implementation
+rmw_implementation: rmw_cyclonedds_cpp
+
+# Installation options
+rmw_verify_installation: true

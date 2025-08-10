@@ -1,85 +1,202 @@
-# cuda
+# CUDA
 
-This role installs [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) following [this page](https://developer.nvidia.com/cuda-12-4-0-download-archive?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=22.04&target_type=deb_network) and [this page](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#post-installation-actions).
+This role installs [NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) and configures GPU vendors for Vulkan, OpenGL, and OpenCL support. It follows [NVIDIA's official installation guide](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html) and supports both x86_64 and ARM64 architectures.
 
-This role also registers Vulkan, OpenGL, and OpenCL GPU vendors for future use.
+## Features
 
-## Inputs
+- **Multi-architecture support**: Automatically detects and installs appropriate packages for x86_64 and ARM64 (sbsa)
+- **Flexible installation modes**: Development (full toolkit) or runtime (minimal) installation
+- **GPU vendor registration**: Configures Vulkan, OpenGL, and OpenCL support
+- **Environment setup**: Automatically configures PATH and LD_LIBRARY_PATH
+- **Optional driver installation**: Configurable CUDA driver installation
+- **Installation verification**: Checks for successful CUDA installation
 
-| Name                 | Required | Description                      |
-| -------------------- | -------- | -------------------------------- |
-| cuda_version         | true     | The version of CUDA Toolkit.     |
-| cuda_install_drivers | false    | Whether to install cuda-drivers. |
+## Variables
+
+| Name | Default | Required | Description |
+|------|---------|----------|-------------|
+| `cuda_version` | `"12.4"` | Yes | CUDA Toolkit version to install |
+| `cuda_install_drivers` | `true` | No | Whether to install CUDA drivers |
+| `install_devel` | `"y"` | No | Install development packages ("y") or runtime only (set by playbook) |
+| `vulkan_icd_dir` | `"/etc/vulkan/icd.d"` | No | Vulkan ICD directory path |
+| `opengl_vendor_dir` | `"/etc/glvnd/egl_vendor.d"` | No | OpenGL vendor directory path |
+| `opencl_vendor_dir` | `"/etc/OpenCL/vendors"` | No | OpenCL vendor directory path |
+| `cuda_bin_path` | `"/usr/local/cuda/bin"` | No | CUDA binary directory path |
+| `cuda_lib_path` | `"/usr/local/cuda/lib64"` | No | CUDA library directory path |
+
+## Installation Modes
+
+### Development Mode (`install_devel: "y"`)
+Installs complete CUDA development toolkit including:
+- `cuda-command-line-tools` - CUDA command line utilities
+- `cuda-minimal-build` - Basic build tools
+- `libcusparse-dev` - Sparse linear algebra library (dev)
+- `libcublas-dev` - Dense linear algebra library (dev)
+- `libcurand-dev` - Random number generation library (dev)
+- `cuda-nvml-dev` - NVIDIA Management Library (dev)
+- `cuda-nvrtc-dev` - Runtime compilation library (dev)
+- `cuda-nvprof` - NVIDIA profiler (x86_64 only)
+
+### Runtime Mode (`install_devel != "y"`)
+Installs minimal runtime libraries:
+- `cuda-minimal-build` - Basic build tools
+- `libcusparse` - Sparse linear algebra library (runtime)
+- `libcublas` - Dense linear algebra library (runtime)
+- `libcurand` - Random number generation library (runtime)
+
+## GPU Vendor Support
+
+The role automatically configures:
+
+### Vulkan Support
+- Downloads NVIDIA Vulkan ICD configuration
+- Enables Vulkan GPU acceleration for graphics applications
+
+### OpenGL Support  
+- Downloads NVIDIA OpenGL vendor configuration
+- Enables OpenGL GPU acceleration
+
+### OpenCL Support
+- Creates NVIDIA OpenCL vendor file
+- Enables OpenCL GPU compute acceleration
+
+## Environment Configuration
+
+The role automatically adds to both user and system-wide bash configurations:
+```bash
+export PATH=/usr/local/cuda/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+```
+
+## Version Compatibility
+
+**Current Default**: CUDA 12.4
+- **Minimum Driver Version**: 550
+- **Supported OS**: Ubuntu 22.04 (Jammy)
+- **Supported Architectures**: x86_64, ARM64
+
+## Usage Examples
+
+### Basic CUDA installation
+```yaml
+- hosts: localhost
+  roles:
+    - cuda
+```
+
+### Runtime-only installation without drivers
+```yaml
+- hosts: localhost
+  roles:
+    - cuda
+  vars:
+    install_devel: "n"
+    cuda_install_drivers: false
+```
+
+### Custom CUDA version
+```yaml
+- hosts: localhost
+  roles:
+    - cuda
+  vars:
+    cuda_version: "12.2"
+```
 
 ## Manual Installation
 
-### Version compatibility
+If you need to install CUDA manually, follow these steps:
 
-Mowbot currently uses CUDA `12.4` which corresponds to the NVIDIA driver version `550` and is minimum required driver version.
-
-#### 🛠️ For Advanced Users
-
-⚠️ **Proceed with caution**: Avoid removing essential system components.
-
-To prevent conflicts during NVIDIA installation, we recommend completely removing old NVIDIA Drivers and CUDA by following this guide: [How can I uninstall a NVIDIA driver completely?](https://askubuntu.com/a/206289/761440).
-
-- **Important**: If you remove the previous NVIDIA drivers, ensure you install the recommended versions listed below **before restarting your system**.
-
-Once the drivers are installed correctly, you may safely restart your system.
-
-### CUDA Toolkit and Driver
-
-Follow these instructions to download and install the CUDA Toolkit.
-
-From: <https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#network-repo-installation-for-ubuntu>
-
+### 1. Install CUDA Toolkit
 ```bash
-wget -O /tmp/amd64.env https://raw.githubusercontent.com/serene4mr/mowbot/main/amd64.env && source /tmp/amd64.env
+# Download environment variables
+wget -O /tmp/amd64.env https://raw.githubusercontent.com/serene4mr/mowbot/main/amd64.env
+source /tmp/amd64.env
 
+# Add NVIDIA repository
 os=ubuntu2204
-wget https://developer.download.nvidia.com/compute/cuda/repos/$os/$(uname -m)/cuda-keyring_1.1-1_all.deb
+arch=$(uname -m)
+wget https://developer.download.nvidia.com/compute/cuda/repos/$os/$arch/cuda-keyring_1.1-1_all.deb
 sudo dpkg -i cuda-keyring_1.1-1_all.deb
 sudo apt-get update
-cuda_version_dashed=$(eval sed -e "s/[.]/-/g" <<< "${cuda_version}")
+
+# Install CUDA toolkit
+cuda_version_dashed=$(echo "12.4" | sed -e "s/\./-/g")
 sudo apt-get -y install cuda-toolkit-${cuda_version_dashed}
-sudo apt-get install -y cuda-drivers-550
+
+# Install drivers (optional)
+sudo apt-get install -y cuda-drivers
 ```
 
-Perform the post installation actions:
-
+### 2. Configure Environment
 ```bash
-# Taken from: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#post-installation-actions
-echo 'export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}' >> ~/.bashrc
-echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' >> ~/.bashrc
+# Add to ~/.bashrc
+echo 'export PATH=/usr/local/cuda/bin:$PATH' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' >> ~/.bashrc
+source ~/.bashrc
 ```
 
-### GPU Vendors
-
-Register Vulkan, OpenGL, and OpenCL GPU vendors following the instructions below.
-
+### 3. Setup GPU Vendors
 ```bash
-# Create Vulkan directory
-sudo mkdir -p /etc/vulkan/icd.d
-sudo chmod 0755 /etc/vulkan/icd.d
+# Create directories
+sudo mkdir -p /etc/vulkan/icd.d /etc/glvnd/egl_vendor.d /etc/OpenCL/vendors
 
-# Create OpenGL directory
-sudo mkdir -p /etc/glvnd/egl_vendor.d
-sudo chmod 0755 /etc/glvnd/egl_vendor.d
+# Download Vulkan ICD
+sudo wget https://gitlab.com/nvidia/container-images/vulkan/raw/dc389b0445c788901fda1d85be96fd1cb9410164/nvidia_icd.json \
+  -O /etc/vulkan/icd.d/nvidia_icd.json
 
-# Create OpenCL directory
-sudo mkdir -p /etc/OpenCL/vendors
-sudo chmod 0755 /etc/OpenCL/vendors
+# Download OpenGL vendor
+sudo wget https://gitlab.com/nvidia/container-images/opengl/raw/5191cf205d3e4bb1150091f9464499b076104354/glvnd/runtime/10_nvidia.json \
+  -O /etc/glvnd/egl_vendor.d/10_nvidia.json
 
-# Download and set permissions for Vulkan GPU vendors JSON
-sudo wget https://gitlab.com/nvidia/container-images/vulkan/raw/dc389b0445c788901fda1d85be96fd1cb9410164/nvidia_icd.json -O /etc/vulkan/icd.d/nvidia_icd.json
-sudo chmod 0644 /etc/vulkan/icd.d/nvidia_icd.json
-
-# Download and set permissions for OpenGL GPU vendors JSON
-sudo wget https://gitlab.com/nvidia/container-images/opengl/raw/5191cf205d3e4bb1150091f9464499b076104354/glvnd/runtime/10_nvidia.json -O /etc/glvnd/egl_vendor.d/10_nvidia.json
-sudo chmod 0644 /etc/glvnd/egl_vendor.d/10_nvidia.json
-
-# Register and set permissions for OpenCL GPU vendors
-sudo touch /etc/OpenCL/vendors/nvidia.icd
-echo "libnvidia-opencl.so.1" | sudo tee /etc/OpenCL/vendors/nvidia.icd > /dev/null
-sudo chmod 0644 /etc/OpenCL/vendors/nvidia.icd
+# Create OpenCL vendor
+echo "libnvidia-opencl.so.1" | sudo tee /etc/OpenCL/vendors/nvidia.icd
 ```
+
+### 4. Verify Installation
+```bash
+# Check CUDA compiler
+nvcc --version
+
+# Check NVIDIA driver
+nvidia-smi
+
+# Test CUDA sample (optional)
+cd /usr/local/cuda/samples/1_Utilities/deviceQuery
+sudo make
+./deviceQuery
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**CUDA not found in PATH**
+```bash
+# Reload bash configuration
+source ~/.bashrc
+# Or check if CUDA is installed
+ls -la /usr/local/cuda/bin/nvcc
+```
+
+**Driver compatibility issues**
+```bash
+# Check driver version
+nvidia-smi
+# Ensure driver version >= 550 for CUDA 12.4
+```
+
+**Architecture mismatch**
+```bash
+# Check architecture
+uname -m
+# Ensure correct CUDA packages for your architecture
+```
+
+**Permission issues**
+```bash
+# Fix GPU vendor file permissions
+sudo chmod -R 644 /etc/vulkan/icd.d/ /etc/glvnd/egl_vendor.d/ /etc/OpenCL/vendors/
+```
+
+For more troubleshooting, see [NVIDIA's CUDA Installation Guide](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#troubleshooting).

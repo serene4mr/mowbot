@@ -56,6 +56,13 @@ pkg-config --exists GeographicLib
 
 This role has no dependencies and can be run independently.
 
+## Features
+
+- **Smart installation**: Checks if GeographicLib is already installed before attempting installation
+- **Configurable package**: Customizable package name and version
+- **Optional verification**: Can disable installation verification if needed
+- **Clear feedback**: Provides success/warning messages based on installation status
+
 ## Verification
 
-The role automatically verifies the installation using `pkg-config` and provides feedback on success or failure.
+The role automatically verifies the installation using `pkg-config` and provides feedback on success or failure. Verification can be disabled by setting `geographiclib_verify_installation: false`.

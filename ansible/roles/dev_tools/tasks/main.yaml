@@ -1,20 +1,65 @@
-- name: Hold check of ros-{{ rosdistro + '-plotjuggler-ros' }}
-  ansible.builtin.command: apt-mark showhold
-  register: held_ros_packages
-  changed_when: false
-
-- name: Install plotjuggler
+---
+- name: Update package cache
   become: true
   ansible.builtin.apt:
-    name:
-      - ros-{{ rosdistro }}-plotjuggler-ros
-    state: latest
     update_cache: true
-  when: "'ros-' + rosdistro + '-plotjuggler-ros' not in held_ros_packages.stdout"
-  register: install_result
-  failed_when: false
+    cache_valid_time: 3600
 
-- name: Display warning if plotjuggler-ros package is held
+- name: Install ROS development tools
+  become: true
+  ansible.builtin.apt:
+    name: "{{ ros_tools_packages }}"
+    state: latest
+  when: install_ros_tools | bool
+
+- name: Install system development utilities
+  become: true
+  ansible.builtin.apt:
+    name: "{{ system_tools_packages }}"
+    state: latest
+  when: install_system_tools | bool
+
+- name: Install Python development tools
+  become: true
+  ansible.builtin.apt:
+    name: "{{ python_tools_packages }}"
+    state: latest
+  when: install_python_tools | bool
+
+- name: Install code quality tools
+  become: true
+  ansible.builtin.apt:
+    name: "{{ code_quality_packages }}"
+    state: latest
+  when: install_code_quality_tools | bool
+
+- name: Install additional Python packages
+  ansible.builtin.pip:
+    name:
+      - pre-commit
+      - black
+      - flake8
+      - mypy
+    state: latest
+  when: install_python_tools | bool
+
+- name: Setup git-lfs
+  ansible.builtin.command: git lfs install --skip-smudge
+  changed_when: false
+  when: install_system_tools | bool
+
+- name: Verify ROS tools installation
+  ansible.builtin.command: "dpkg -l | grep {{ item }}"
+  register: ros_tools_check
+  changed_when: false
+  failed_when: false
+  loop:
+    - plotjuggler
+    - rqt
+    - rviz2
+  when: install_ros_tools | bool
+
+- name: Display installed ROS development tools
   ansible.builtin.debug:
-    msg: ROS package 'ros-{{ rosdistro }}-plotjuggler-ros' is apt-mark hold. Skipping installation.
-  when: not install_result.changed
+    msg: "✅ ROS development tools installed successfully"
+  when: install_ros_tools | bool and ros_tools_check.results is defined

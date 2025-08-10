@@ -1,3 +1,9 @@
+- name: Update package cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
 - name: Install additional dependencies
   become: true
   ansible.builtin.apt:
@@ -7,18 +13,35 @@
 - name: Add Kisak Mesa PPA
   become: true
   ansible.builtin.apt_repository:
-    repo: ppa:kisak/kisak-mesa
+    repo: "{{ kisak_mesa_ppa }}"
+
+- name: Update package cache after adding PPA
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+  when: kisak_mesa_update_cache | bool
 
 - name: Install Mesa libraries
   become: true
   ansible.builtin.apt:
-    name:
-      - libegl-mesa0
-      - libegl1-mesa-dev
-      - libgbm-dev
-      - libgbm1
-      - libgl1-mesa-dev
-      - libgl1-mesa-dri
-      - libglapi-mesa
-      - libglx-mesa0
+    name: "{{ mesa_packages }}"
     state: present
+    update_cache: false
+  register: mesa_installation
+
+- name: Verify Mesa installation
+  ansible.builtin.command: dpkg -l | grep -E "(libegl-mesa0|libgl1-mesa-dev)"
+  changed_when: false
+  failed_when: false
+  register: mesa_verification
+  when: kisak_mesa_verify_installation | bool
+
+- name: Display Mesa installation status
+  ansible.builtin.debug:
+    msg: "✅ Kisak Mesa libraries installed successfully"
+  when: kisak_mesa_verify_installation | bool and mesa_verification.rc == 0
+
+- name: Display Mesa installation warning
+  ansible.builtin.debug:
+    msg: "⚠️ Warning: Some Mesa libraries may not be properly installed. Check manually if needed."
+  when: kisak_mesa_verify_installation | bool and mesa_verification.rc != 0

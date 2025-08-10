@@ -1,0 +1,13 @@
+---
+# CUDA configuration
+cuda_version: "12.4"
+cuda_install_drivers: true
+
+# GPU vendor directories
+vulkan_icd_dir: "/etc/vulkan/icd.d"
+opengl_vendor_dir: "/etc/glvnd/egl_vendor.d"  
+opencl_vendor_dir: "/etc/OpenCL/vendors"
+
+# CUDA paths
+cuda_bin_path: "/usr/local/cuda/bin"
+cuda_lib_path: "/usr/local/cuda/lib64"

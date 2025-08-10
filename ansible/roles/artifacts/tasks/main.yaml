@@ -1,0 +1,60 @@
+---
+- name: Expand artifacts directory path
+  ansible.builtin.set_fact:
+    artifacts_dir_expanded: "{{ artifacts_dir | expanduser }}"
+
+- name: Create artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir_expanded }}"
+    state: directory
+    mode: '0755'
+  register: artifacts_dir_creation
+
+- name: Download ONNX model files
+  ansible.builtin.get_url:
+    url: "{{ item.url }}"
+    dest: "{{ artifacts_dir_expanded }}/{{ item.name }}"
+    mode: '0644'
+    checksum: "{{ item.checksum | default(omit) }}"
+    timeout: 300
+  loop: "{{ onnx_models }}"
+  when: download_onnx_models | bool
+  register: onnx_downloads
+
+- name: Download configuration files
+  ansible.builtin.get_url:
+    url: "{{ item.url }}"
+    dest: "{{ artifacts_dir_expanded }}/{{ item.name }}"
+    mode: '0644'
+    checksum: "{{ item.checksum | default(omit) }}"
+    timeout: 300
+  loop: "{{ config_files }}"
+  when: download_config_files | bool
+  register: config_downloads
+
+- name: Verify downloaded artifacts
+  ansible.builtin.stat:
+    path: "{{ artifacts_dir_expanded }}/{{ item.name }}"
+  loop: "{{ (onnx_models if download_onnx_models else []) + (config_files if download_config_files else []) }}"
+  register: artifact_verification
+  when: artifacts_verify_downloads | bool
+
+- name: Display artifacts download status
+  ansible.builtin.debug:
+    msg: "✅ Artifacts downloaded successfully to {{ artifacts_dir_expanded }}"
+  when: artifacts_verify_downloads | bool and artifact_verification is defined and artifact_verification.results | selectattr('stat.exists') | list | length == (onnx_models | length + config_files | length)
+
+- name: Display artifacts download warning
+  ansible.builtin.debug:
+    msg: "⚠️ Warning: Some artifacts may not have been downloaded successfully. Check {{ artifacts_dir_expanded }}"
+  when: artifacts_verify_downloads | bool and artifact_verification is defined and artifact_verification.results | selectattr('stat.exists') | list | length != (onnx_models | length + config_files | length)
+
+- name: Display artifacts directory info
+  ansible.builtin.debug:
+    msg: "📁 Artifacts directory: {{ artifacts_dir_expanded }}"
+  when: artifacts_dir_creation.changed
+
+- name: Display artifacts directory status
+  ansible.builtin.debug:
+    msg: "📁 Artifacts directory already exists: {{ artifacts_dir_expanded }}"
+  when: not artifacts_dir_creation.changed

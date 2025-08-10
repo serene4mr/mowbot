@@ -1,52 +1,75 @@
-- name: Install cuDNN and TensorRT
+- name: Update package cache
   become: true
   ansible.builtin.apt:
-    name:
-      - libcudnn8={{ cudnn_version }}
-      - libnvinfer10={{ tensorrt_version }}
-      - libnvinfer-plugin10={{ tensorrt_version }}
-      - libnvonnxparsers10={{ tensorrt_version }}
-    allow_change_held_packages: true
-    allow_downgrade: true
     update_cache: true
+    cache_valid_time: 3600
 
-- name: Install cuDNN and TensorRT Dev
+- name: Install cuDNN and TensorRT runtime packages
   become: true
   ansible.builtin.apt:
-    name:
-      - libcudnn8-dev={{ cudnn_version }}
-      - libnvinfer-dev={{ tensorrt_version }}
-      - libnvinfer-plugin-dev={{ tensorrt_version }}
-      - libnvinfer-headers-dev={{ tensorrt_version }}
-      - libnvinfer-headers-plugin-dev={{ tensorrt_version }}
-      - libnvonnxparsers-dev={{ tensorrt_version }}
+    name: "{{ tensorrt_runtime_packages }}"
     allow_change_held_packages: true
     allow_downgrade: true
-    update_cache: true
-  when: install_devel == 'y'
+    update_cache: false
+  register: tensorrt_runtime_installation
+
+- name: Install cuDNN and TensorRT development packages
+  become: true
+  ansible.builtin.apt:
+    name: "{{ tensorrt_dev_packages }}"
+    allow_change_held_packages: true
+    allow_downgrade: true
+    update_cache: false
+  when: tensorrt_install_devel | bool
+  register: tensorrt_dev_installation
 
 # apt-mark hold
-- name: Prevent CUDA-related packages from upgrading
+- name: Prevent TensorRT runtime packages from upgrading
   become: true
   ansible.builtin.dpkg_selections:
     name: "{{ item }}"
     selection: hold
-  with_items:
-    - libcudnn8
-    - libnvinfer10
-    - libnvinfer-plugin10
-    - libnvonnxparsers10
+  with_items: "{{ tensorrt_hold_runtime_packages }}"
+  when: tensorrt_hold_packages | bool
 
-- name: Prevent CUDA-related Dev packages from upgrading
+- name: Prevent TensorRT development packages from upgrading
   become: true
   ansible.builtin.dpkg_selections:
     name: "{{ item }}"
     selection: hold
-  with_items:
-    - libcudnn8-dev
-    - libnvinfer-dev
-    - libnvinfer-plugin-dev
-    - libnvinfer-headers-dev
-    - libnvinfer-headers-plugin-dev
-    - libnvonnxparsers-dev
-  when: install_devel == 'y'
+  with_items: "{{ tensorrt_hold_dev_packages }}"
+  when: tensorrt_install_devel | bool and tensorrt_hold_packages | bool
+
+- name: Verify TensorRT runtime installation
+  ansible.builtin.command: dpkg -l | grep -E "(libnvinfer10|libcudnn8)"
+  changed_when: false
+  failed_when: false
+  register: tensorrt_runtime_verification
+  when: tensorrt_verify_installation | bool
+
+- name: Verify TensorRT development installation
+  ansible.builtin.command: dpkg -l | grep -E "(libnvinfer-dev|libcudnn8-dev)"
+  changed_when: false
+  failed_when: false
+  register: tensorrt_dev_verification
+  when: tensorrt_verify_installation | bool and tensorrt_install_devel | bool
+
+- name: Display TensorRT runtime installation status
+  ansible.builtin.debug:
+    msg: "✅ TensorRT runtime packages installed successfully"
+  when: tensorrt_verify_installation | bool and tensorrt_runtime_verification.rc == 0
+
+- name: Display TensorRT development installation status
+  ansible.builtin.debug:
+    msg: "✅ TensorRT development packages installed successfully"
+  when: tensorrt_verify_installation | bool and tensorrt_install_devel | bool and tensorrt_dev_verification.rc == 0
+
+- name: Display TensorRT installation warning
+  ansible.builtin.debug:
+    msg: "⚠️ Warning: Some TensorRT packages may not be properly installed. Check manually if needed."
+  when: tensorrt_verify_installation | bool and (tensorrt_runtime_verification.rc != 0 or (tensorrt_install_devel | bool and tensorrt_dev_verification.rc != 0))
+
+- name: Display package hold status
+  ansible.builtin.debug:
+    msg: "🔒 TensorRT packages are held to prevent automatic upgrades"
+  when: tensorrt_hold_packages | bool

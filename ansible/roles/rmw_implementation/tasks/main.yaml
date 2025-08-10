@@ -1,0 +1,58 @@
+- name: Update package cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install RMW implementation package
+  become: true
+  ansible.builtin.apt:
+    name: "ros-{{ rosdistro }}-{{ rmw_implementation | replace('_', '-') }}"
+    state: latest
+    update_cache: false
+  register: rmw_installation
+
+- name: Set default RMW implementation in .bashrc
+  ansible.builtin.lineinfile:
+    dest: ~/.bashrc
+    line: "export RMW_IMPLEMENTATION={{ rmw_implementation }}"
+    state: present
+    create: true
+    mode: 0644
+  register: bashrc_update
+
+- name: Set default RMW implementation in .profile
+  ansible.builtin.lineinfile:
+    dest: ~/.profile
+    line: "export RMW_IMPLEMENTATION={{ rmw_implementation }}"
+    state: present
+    create: true
+    mode: 0644
+  register: profile_update
+
+- name: Verify RMW implementation installation
+  ansible.builtin.command: dpkg -l | grep "ros-{{ rosdistro }}-{{ rmw_implementation | replace('_', '-') }}"
+  changed_when: false
+  failed_when: false
+  register: rmw_verification
+  when: rmw_verify_installation | bool
+
+- name: Display RMW implementation installation status
+  ansible.builtin.debug:
+    msg: "✅ RMW implementation {{ rmw_implementation }} installed successfully"
+  when: rmw_verify_installation | bool and rmw_verification.rc == 0
+
+- name: Display RMW implementation installation warning
+  ansible.builtin.debug:
+    msg: "⚠️ Warning: RMW implementation {{ rmw_implementation }} may not be properly installed. Check manually if needed."
+  when: rmw_verify_installation | bool and rmw_verification.rc != 0
+
+- name: Display environment configuration status
+  ansible.builtin.debug:
+    msg: "✅ RMW_IMPLEMENTATION environment variable configured in .bashrc and .profile"
+  when: bashrc_update.changed or profile_update.changed
+
+- name: Display environment configuration info
+  ansible.builtin.debug:
+    msg: "ℹ️ RMW_IMPLEMENTATION={{ rmw_implementation }} will be available in new shell sessions"
+  when: not (bashrc_update.changed or profile_update.changed)

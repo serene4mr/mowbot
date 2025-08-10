@@ -1,17 +1,36 @@
 # Required
 namespace: mowbot
 name: dev_env
-version: 0.1.0
+version: 1.0.0
 readme: README.md
 authors:
   - Nguyen Ha Trung <trungnh.aitech@gmail.com>
 
 # Optional
-description: Set up development environment for mowbot project
+description: Comprehensive development environment setup for mowbot robotics project with ROS 2, GPU acceleration, and AI tools
 license:
-  - MIT # TODO: update later
+  - MIT
 tags:
   - mowbot
+  - robotics
+  - ros2
+  - cuda
+  - tensorrt
+  - nvidia
+  - development
+  - ubuntu
+  - docker
+  - gpu
+  - ai
+  - machine-learning
+  - perception
+  - autonomous-driving
+  - geographiclib
+  - build-tools
+  - dev-tools
+  - artifacts
+  - rmw
+  - middleware
 dependencies: {}
 repository: "https://github.com/serene4mr/mowbot"
 documentation: "https://github.com/serene4mr/mowbot/README.md"

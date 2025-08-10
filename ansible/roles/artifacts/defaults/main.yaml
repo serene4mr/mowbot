@@ -1,0 +1,15 @@
+---
+# Artifacts configuration
+artifacts_dir: "~/mowbot_data"
+
+# Download options
+download_onnx_models: false
+download_config_files: false
+artifacts_verify_downloads: true
+artifacts_create_backup: false
+
+# ONNX models to download (empty for now)
+onnx_models: []
+
+# Configuration files to download (empty for now)
+config_files: []

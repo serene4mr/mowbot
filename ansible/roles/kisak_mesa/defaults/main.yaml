@@ -1,0 +1,18 @@
+---
+# Kisak Mesa configuration
+kisak_mesa_ppa: "ppa:kisak/kisak-mesa"
+
+# Mesa library packages
+mesa_packages:
+  - libegl-mesa0
+  - libegl1-mesa-dev
+  - libgbm-dev
+  - libgbm1
+  - libgl1-mesa-dev
+  - libgl1-mesa-dri
+  - libglapi-mesa
+  - libglx-mesa0
+
+# Installation options
+kisak_mesa_verify_installation: true
+kisak_mesa_update_cache: true

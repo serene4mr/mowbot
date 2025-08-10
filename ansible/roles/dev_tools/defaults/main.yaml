@@ -1,0 +1,39 @@
+---
+# ROS development tools
+rosdistro: humble
+
+# ROS development tools
+ros_tools_packages:
+  - ros-{{ rosdistro }}-plotjuggler-ros
+  - ros-{{ rosdistro }}-rqt
+  - ros-{{ rosdistro }}-rqt-common-plugins
+  - ros-{{ rosdistro }}-rviz2
+
+# System development utilities
+system_tools_packages:
+  - git-lfs
+  - curl
+  - wget
+  - vim
+  - htop
+  - tree
+  - jq
+  - unzip
+
+# Python development tools
+python_tools_packages:
+  - python3-pip
+  - python3-venv
+  - python3-dev
+
+# Code quality tools
+code_quality_packages:
+  - clang-format
+  - cppcheck
+  - valgrind
+
+# Optional tools (can be disabled)
+install_ros_tools: true
+install_system_tools: true
+install_python_tools: true
+install_code_quality_tools: true
