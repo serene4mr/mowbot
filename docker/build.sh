@@ -10,9 +10,15 @@ print_help() {
     echo "  -h              Display this help message"
     echo "  --no-cuda       Disable CUDA support"
     echo "  --platform      Specify the platform (default: current platform)"
-    echo "  --devel-only    Build devel image only"
+    echo "  --devel-only    Build development image only (targets: mowbot-devel)"
     echo "  --target        Specify the target image (default: mowbot or mowbot-devel if --devel-only is set)"
     echo "  --version       Specify the version tag (default: latest)"
+    echo ""
+    echo "Available targets:"
+    echo "  mowbot-devel    → ghcr.io/amr4serene/mowbot:core-dev"
+    echo "  mowbot          → ghcr.io/amr4serene/mowbot:core-runtime"
+    echo "  mowbot-devel-cuda → ghcr.io/amr4serene/mowbot:core-dev-cuda"
+    echo "  mowbot-cuda     → ghcr.io/amr4serene/mowbot:core-runtime-cuda"
     echo ""
     echo "Note: The --platform option should be one of 'linux/amd64' or 'linux/arm64'."
 }
@@ -171,10 +177,10 @@ build_images() {
         --set "*.args.MOWBOT_BASE_CUDA_IMAGE=$mowbot_base_cuda_image" \
         --set "*.args.SETUP_ARGS=$setup_args" \
         --set "*.args.LIB_DIR=$lib_dir" \
-        --set "mowbot-devel.tags=ghcr.io/amr4serene/mowbot:dev,ghcr.io/amr4serene/mowbot:dev-$VERSION" \
-        --set "mowbot.tags=ghcr.io/amr4serene/mowbot:runtime,ghcr.io/amr4serene/mowbot:runtime-$VERSION" \
-        --set "mowbot-devel-cuda.tags=ghcr.io/amr4serene/mowbot:dev-cuda,ghcr.io/amr4serene/mowbot:dev-cuda-$VERSION" \
-        --set "mowbot-cuda.tags=ghcr.io/amr4serene/mowbot:runtime-cuda,ghcr.io/amr4serene/mowbot:runtime-cuda-$VERSION" \
+        --set "mowbot-devel.tags=ghcr.io/amr4serene/mowbot:core-dev,ghcr.io/amr4serene/mowbot:core-dev-$VERSION" \
+        --set "mowbot.tags=ghcr.io/amr4serene/mowbot:core-runtime,ghcr.io/amr4serene/mowbot:core-runtime-$VERSION" \
+        --set "mowbot-devel-cuda.tags=ghcr.io/amr4serene/mowbot:core-dev-cuda,ghcr.io/amr4serene/mowbot:core-dev-cuda-$VERSION" \
+        --set "mowbot-cuda.tags=ghcr.io/amr4serene/mowbot:core-runtime-cuda,ghcr.io/amr4serene/mowbot:core-runtime-cuda-$VERSION" \
         "$target$image_name_suffix"
     set +x
 }
