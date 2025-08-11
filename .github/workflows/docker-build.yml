@@ -76,6 +76,9 @@ jobs:
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/id_ed25519
           
+          # Export SSH_AUTH_SOCK for Docker builds
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+          
           echo "SSH setup completed!"
 
       - name: Test SSH repository access
