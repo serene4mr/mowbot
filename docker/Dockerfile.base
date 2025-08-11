@@ -45,6 +45,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Set up CUDA runtime environment
 # hadolint ignore=SC2002
 RUN --mount=type=ssh \
-  MOWBOT_DISABLE_DOCKER_RESTART=true ./setup-dev-env.sh -y --module base --no-cuda-drivers --runtime \
+  ./setup-dev-env.sh -y --module base --no-cuda-drivers --runtime \
   && pip uninstall -y ansible ansible-core \
   && /mowbot/cleanup_apt.sh true

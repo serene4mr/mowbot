@@ -71,15 +71,15 @@
         count: -1
         capabilities:
           - gpu
-  when: nvidia_container_toolkit_test_installation | bool and nvidia_ctk_verification.rc == 0 and not (ansible_env.MOWBOT_DISABLE_DOCKER_RESTART is defined and ansible_env.MOWBOT_DISABLE_DOCKER_RESTART == "true")
+  when: nvidia_container_toolkit_test_installation | bool and nvidia_ctk_verification.rc == 0 and nvidia_container_toolkit_restart_docker | bool
   register: nvidia_test_result
 
 - name: Display NVIDIA Container Toolkit test result
   ansible.builtin.debug:
     msg: "✅ NVIDIA Container Toolkit test successful - GPU access working"
-  when: nvidia_container_toolkit_test_installation | bool and nvidia_test_result is defined and nvidia_test_result.changed and not (ansible_env.MOWBOT_DISABLE_DOCKER_RESTART is defined and ansible_env.MOWBOT_DISABLE_DOCKER_RESTART == "true")
+  when: nvidia_container_toolkit_test_installation | bool and nvidia_test_result is defined and nvidia_test_result.changed and nvidia_container_toolkit_restart_docker | bool
 
 - name: Display NVIDIA Container Toolkit test warning
   ansible.builtin.debug:
     msg: "⚠️ Warning: NVIDIA Container Toolkit test failed. Check GPU drivers and Docker configuration."
-  when: nvidia_container_toolkit_test_installation | bool and nvidia_test_result is defined and not nvidia_test_result.changed and not (ansible_env.MOWBOT_DISABLE_DOCKER_RESTART is defined and ansible_env.MOWBOT_DISABLE_DOCKER_RESTART == "true")
+  when: nvidia_container_toolkit_test_installation | bool and nvidia_test_result is defined and not nvidia_test_result.changed and nvidia_container_toolkit_restart_docker | bool
