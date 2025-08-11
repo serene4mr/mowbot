@@ -1,14 +1,14 @@
 {
     "name": "mowbot_dev",
-    "build": {
-        "dockerfile": "../Dockerfile",
-        "context": "..",
-        "options": [
-            "-t", "mowbot_dev",
-            "--build-arg", "BASE_IMAGE=ghcr.io/serene4mr/mowbot:main-dev-latest"
-        ]
-    },
-    // "image": "ghcr.io/serene4mr/mowbot:main-dev-latest",
+    // "build": {
+    //     "dockerfile": "../Dockerfile",
+    //     "context": "..",
+    //     "options": [
+    //         "-t", "mowbot_dev",
+    //         "--build-arg", "BASE_IMAGE=ghcr.io/serene4mr/mowbot:main-dev-latest"
+    //     ]
+    // },
+    "image": "ghcr.io/serene4mr/mowbot:main-dev-latest",
     // "image": "ghcr.io/serene4mr/mowbot:main-dev-cuda",
     "runArgs": [
         "--name", "mowbot_dev",
