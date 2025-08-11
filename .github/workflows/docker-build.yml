@@ -55,11 +55,6 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-          eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/id_ed25519
-          
-          # Export SSH_AUTH_SOCK for Docker builds
-          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
           
           # Test SSH connection
           ssh -T git@github.com || true
@@ -68,18 +63,10 @@ jobs:
 
       - name: Configure Docker Buildx SSH
         run: |
-          # Ensure SSH agent is running and configured
-          if [ -z "$SSH_AUTH_SOCK" ]; then
-            eval "$(ssh-agent -s)"
-            ssh-add ~/.ssh/id_ed25519
-            echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
-          fi
+          # Configure Docker Buildx to use SSH key directly
+          docker buildx create --use --name builder-with-ssh --driver docker-container
           
-          # Configure Docker Buildx to use SSH agent
-          docker buildx create --use --name builder-with-ssh --driver docker-container --driver-opt network=host
-          
-          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
-          echo "SSH agent configured for Docker Buildx"
+          echo "Docker Buildx configured for SSH key authentication"
 
       - name: Set up QEMU for multi-platform builds
         uses: docker/setup-qemu-action@v3
