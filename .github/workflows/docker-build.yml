@@ -90,6 +90,9 @@ jobs:
           docker system prune -af --volumes
           sudo apt-get clean
           sudo apt-get autoremove -y
+          sudo rm -rf /var/lib/apt/lists/*
+          sudo rm -rf /tmp/*
+          sudo rm -rf /var/tmp/*
           df -h
           echo "Disk cleanup completed!"
 
@@ -119,7 +122,10 @@ jobs:
           wait
           
           # Clean up after base builds
-          docker system prune -f
+          docker system prune -af --volumes
+          sudo apt-get clean
+          sudo apt-get autoremove -y
+          df -h
           
           # Create multi-arch manifest for base
           docker manifest create ghcr.io/serene4mr/mowbot:base \
@@ -151,7 +157,10 @@ jobs:
           wait
           
           # Clean up after main-dev builds
-          docker system prune -f
+          docker system prune -af --volumes
+          sudo apt-get clean
+          sudo apt-get autoremove -y
+          df -h
           
           # Create multi-arch manifest for main-dev
           docker manifest create ghcr.io/serene4mr/mowbot:main-dev \
@@ -170,6 +179,12 @@ jobs:
           cd docker
           
           echo "Building CUDA images (AMD64 only)..."
+          
+          # Clean up before CUDA build (CUDA builds are very large)
+          docker system prune -af --volumes
+          sudo apt-get clean
+          sudo apt-get autoremove -y
+          df -h
           
           # Build main-dev-cuda for AMD64 only
           ./build.sh --target main-dev-cuda --platform linux/amd64 --version $VERSION
