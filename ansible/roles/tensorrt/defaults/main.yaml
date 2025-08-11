@@ -1,45 +1,7 @@
 ---
-# TensorRT configuration
+# TensorRT and cuDNN versions
 tensorrt_version: "8.6.1.6"
-tensorrt_cuda_version: "12.0"
-
-# cuDNN configuration
 cudnn_version: "8.9.7.29"
 
-# Installation options
-tensorrt_install_devel: true
-tensorrt_verify_installation: true
-tensorrt_hold_packages: true
-
-# Runtime packages
-# Note: These should be the actual package names, not version numbers
-tensorrt_runtime_packages:
-  - "libcudnn8"
-  - "libnvinfer10"
-  - "libnvinfer-plugin10"
-  - "libnvonnxparsers10"
-
-# Development packages
-# Note: These should be the actual package names, not version numbers
-tensorrt_dev_packages:
-  - "libcudnn8-dev"
-  - "libnvinfer-dev"
-  - "libnvinfer-plugin-dev"
-  - "libnvinfer-headers-dev"
-  - "libnvinfer-headers-plugin-dev"
-  - "libnvonnxparsers-dev"
-
-# Package hold list
-tensorrt_hold_runtime_packages:
-  - libcudnn8
-  - libnvinfer10
-  - libnvinfer-plugin10
-  - libnvonnxparsers10
-
-tensorrt_hold_dev_packages:
-  - libcudnn8-dev
-  - libnvinfer-dev
-  - libnvinfer-plugin-dev
-  - libnvinfer-headers-dev
-  - libnvinfer-headers-plugin-dev
-  - libnvonnxparsers-dev
+# Installation options (simplified)
+tensorrt_hold_packages: true  # Prevent automatic upgrades

@@ -26,8 +26,8 @@ This is essential for:
 | `tensorrt_version` | `"8.6.1.6"` | TensorRT version to install (can be full package spec like `10.8.0.43-1+cuda12.8`) |
 | `tensorrt_cuda_version` | `"12.0"` | CUDA version compatibility |
 | `cudnn_version` | `"8.9.7.29"` | cuDNN version to install (can be full package spec like `8.9.7.29-1+cuda12.2`) |
-| `tensorrt_install_devel` | `true` | Whether to install development packages |
-| `tensorrt_verify_installation` | `true` | Whether to verify installation success |
+| `tensorrt_install_devel` | `false` | Whether to install development packages |
+| `tensorrt_verify_installation` | `false` | Whether to verify installation success |
 | `tensorrt_hold_packages` | `true` | Whether to hold packages from upgrades |
 
 ## Installed Packages
@@ -50,12 +50,9 @@ This is essential for:
 
 The role performs the following steps:
 
-1. **Update package cache** - Ensures latest package information
-2. **Install runtime packages** - Installs TensorRT and cuDNN runtime libraries
-3. **Install development packages** - Installs development headers (optional)
-4. **Hold packages** - Prevents automatic upgrades to maintain compatibility
-5. **Verify installation** - Checks if packages are properly installed
-6. **Display status** - Provides feedback on installation and configuration
+1. **Install runtime packages** - Installs TensorRT and cuDNN runtime libraries
+2. **Install development packages** - Installs development headers (when `install_devel == 'y'`)
+3. **Hold packages** - Prevents automatic upgrades to maintain compatibility
 
 ## Usage Examples
 
@@ -97,13 +94,13 @@ The role performs the following steps:
     tensorrt_hold_packages: false
 ```
 
-### Disable verification
+### Enable verification
 ```yaml
 - hosts: localhost
   roles:
     - tensorrt
   vars:
-    tensorrt_verify_installation: false
+    tensorrt_verify_installation: true
 ```
 
 ## Manual Installation

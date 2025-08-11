@@ -18,12 +18,7 @@ This is especially important for:
 
 ## Variables
 
-| Name | Default | Description |
-|------|---------|-------------|
-| `kisak_mesa_ppa` | `"ppa:kisak/kisak-mesa"` | PPA repository URL |
-| `mesa_packages` | `[libegl-mesa0, libegl1-mesa-dev, ...]` | List of Mesa packages to install |
-| `kisak_mesa_verify_installation` | `true` | Whether to verify installation success |
-| `kisak_mesa_update_cache` | `true` | Whether to update APT cache after adding PPA |
+This role uses no configurable variables. All package selections and repository settings are included directly in the role for simplicity and reliability.
 
 ## Installed Packages
 
@@ -37,6 +32,14 @@ The role installs the following Mesa graphics libraries:
 - **libglapi-mesa** - Mesa OpenGL API
 - **libglx-mesa0** - Mesa GLX runtime
 
+## Installation Process
+
+The role performs the following simple steps:
+
+1. **Install dependencies** - Installs `software-properties-common`
+2. **Add Kisak Mesa PPA** - Adds the `ppa:kisak/kisak-mesa` repository
+3. **Install Mesa libraries** - Installs all required Mesa packages
+
 ## Usage Examples
 
 ### Basic installation
@@ -46,34 +49,22 @@ The role installs the following Mesa graphics libraries:
     - kisak_mesa
 ```
 
-### Custom PPA repository
+### Using in a playbook
 ```yaml
 - hosts: localhost
+  become: true
   roles:
     - kisak_mesa
-  vars:
-    kisak_mesa_ppa: "ppa:custom/mesa-fork"
 ```
 
-### Disable verification
+### Combined with other ROS 2 roles
 ```yaml
 - hosts: localhost
+  become: true
   roles:
+    - build_tools
     - kisak_mesa
-  vars:
-    kisak_mesa_verify_installation: false
-```
-
-### Custom package selection
-```yaml
-- hosts: localhost
-  roles:
-    - kisak_mesa
-  vars:
-    mesa_packages:
-      - libegl-mesa0
-      - libgl1-mesa-dev
-      - libgl1-mesa-dri
+    - dev_tools
 ```
 
 ## Manual Installation
@@ -90,9 +81,6 @@ sudo apt-get install -y software-properties-common
 # Add Kisak Mesa PPA
 sudo add-apt-repository -y ppa:kisak/kisak-mesa
 
-# Update package lists after adding PPA
-sudo apt-get update
-
 # Install Mesa libraries
 sudo apt-get install -y \
   libegl-mesa0 \
@@ -104,7 +92,7 @@ sudo apt-get install -y \
   libglapi-mesa \
   libglx-mesa0
 
-# Verify installation
+# Verify installation (optional)
 dpkg -l | grep -E "(libegl-mesa0|libgl1-mesa-dev)"
 ```
 
