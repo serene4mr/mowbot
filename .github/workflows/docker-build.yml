@@ -30,23 +30,11 @@ env:
 jobs:
   build-images:
     runs-on: ubuntu-latest
+    timeout-minutes: 180  # 3 hour timeout
     permissions:
       contents: read
       packages: write
       actions: read
-    strategy:
-      matrix:
-        # Build all targets for both platforms
-        include:
-          - target: base
-            platforms: linux/amd64,linux/arm64
-            push: true
-          - target: main-dev
-            platforms: linux/amd64,linux/arm64
-            push: true
-          - target: main-dev-cuda
-            platforms: linux/amd64
-            push: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -91,53 +79,76 @@ jobs:
           ssh-add ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-      - name: Build and push Docker images
+      - name: Build and push base images
         run: |
           cd docker
           chmod +x build.sh
           
-          # Build for all platforms in parallel using Docker Buildx
-          for platform in ${MATRIX_PLATFORMS//,/ }; do
-            echo "Building $MATRIX_TARGET for platform: $platform"
-            
-            # Build the image
-            ./build.sh --target $MATRIX_TARGET --platform $platform --version $VERSION
-            
-            # Tag with platform-specific suffix
-            platform_suffix=$(echo $platform | sed 's/linux\///')
-            docker tag ghcr.io/serene4mr/mowbot:$MATRIX_TARGET ghcr.io/serene4mr/mowbot:$MATRIX_TARGET-$platform_suffix
-            
-            # Push platform-specific image
-            docker push ghcr.io/serene4mr/mowbot:$MATRIX_TARGET-$platform_suffix
-          done
+          echo "Building base images for both platforms..."
           
-          # Create and push multi-arch manifest if multiple platforms
-          if [[ "$MATRIX_PLATFORMS" == *","* ]]; then
-            echo "Creating multi-arch manifest for $MATRIX_TARGET"
-            
-            # Build manifest command
-            manifest_cmd="docker manifest create ghcr.io/serene4mr/mowbot:$MATRIX_TARGET"
-            for platform in ${MATRIX_PLATFORMS//,/ }; do
-              platform_suffix=$(echo $platform | sed 's/linux\///')
-              manifest_cmd="$manifest_cmd ghcr.io/serene4mr/mowbot:$MATRIX_TARGET-$platform_suffix"
-            done
-            
-            # Create and push manifest
-            eval $manifest_cmd
-            docker manifest push ghcr.io/serene4mr/mowbot:$MATRIX_TARGET
-            
-            # Also tag as latest for main targets
-            if [[ "$MATRIX_TARGET" == "base" || "$MATRIX_TARGET" == "main-dev" ]]; then
-              docker manifest create ghcr.io/serene4mr/mowbot:$MATRIX_TARGET-latest \
-                $(echo $manifest_cmd | sed 's/ghcr.io\/serene4mr\/mowbot:'$MATRIX_TARGET'//')
-              docker manifest push ghcr.io/serene4mr/mowbot:$MATRIX_TARGET-latest
-            fi
-          else
-            # Single platform - just tag as latest
-            platform_suffix=$(echo $MATRIX_PLATFORMS | sed 's/linux\///')
-            docker tag ghcr.io/serene4mr/mowbot:$MATRIX_TARGET-$platform_suffix ghcr.io/serene4mr/mowbot:$MATRIX_TARGET-latest
-            docker push ghcr.io/serene4mr/mowbot:$MATRIX_TARGET-latest
-          fi
+          # Build base for AMD64
+          ./build.sh --target base --platform linux/amd64 --version $VERSION
+          docker tag ghcr.io/serene4mr/mowbot:base ghcr.io/serene4mr/mowbot:base-amd64
+          docker push ghcr.io/serene4mr/mowbot:base-amd64
+          
+          # Build base for ARM64
+          ./build.sh --target base --platform linux/arm64 --version $VERSION
+          docker tag ghcr.io/serene4mr/mowbot:base ghcr.io/serene4mr/mowbot:base-arm64
+          docker push ghcr.io/serene4mr/mowbot:base-arm64
+          
+          # Create multi-arch manifest for base
+          docker manifest create ghcr.io/serene4mr/mowbot:base \
+            ghcr.io/serene4mr/mowbot:base-amd64 \
+            ghcr.io/serene4mr/mowbot:base-arm64
+          docker manifest push ghcr.io/serene4mr/mowbot:base
+          
+          # Also tag as latest
+          docker manifest create ghcr.io/serene4mr/mowbot:base-latest \
+            ghcr.io/serene4mr/mowbot:base-amd64 \
+            ghcr.io/serene4mr/mowbot:base-arm64
+          docker manifest push ghcr.io/serene4mr/mowbot:base-latest
+
+      - name: Build and push main-dev images
+        run: |
+          cd docker
+          
+          echo "Building main-dev images for both platforms..."
+          
+          # Build main-dev for AMD64
+          ./build.sh --target main-dev --platform linux/amd64 --version $VERSION
+          docker tag ghcr.io/serene4mr/mowbot:main-dev ghcr.io/serene4mr/mowbot:main-dev-amd64
+          docker push ghcr.io/serene4mr/mowbot:main-dev-amd64
+          
+          # Build main-dev for ARM64
+          ./build.sh --target main-dev --platform linux/arm64 --version $VERSION
+          docker tag ghcr.io/serene4mr/mowbot:main-dev ghcr.io/serene4mr/mowbot:main-dev-arm64
+          docker push ghcr.io/serene4mr/mowbot:main-dev-arm64
+          
+          # Create multi-arch manifest for main-dev
+          docker manifest create ghcr.io/serene4mr/mowbot:main-dev \
+            ghcr.io/serene4mr/mowbot:main-dev-amd64 \
+            ghcr.io/serene4mr/mowbot:main-dev-arm64
+          docker manifest push ghcr.io/serene4mr/mowbot:main-dev
+          
+          # Also tag as latest
+          docker manifest create ghcr.io/serene4mr/mowbot:main-dev-latest \
+            ghcr.io/serene4mr/mowbot:main-dev-amd64 \
+            ghcr.io/serene4mr/mowbot:main-dev-arm64
+          docker manifest push ghcr.io/serene4mr/mowbot:main-dev-latest
+
+      - name: Build and push CUDA images
+        run: |
+          cd docker
+          
+          echo "Building CUDA images (AMD64 only)..."
+          
+          # Build main-dev-cuda for AMD64 only
+          ./build.sh --target main-dev-cuda --platform linux/amd64 --version $VERSION
+          docker push ghcr.io/serene4mr/mowbot:main-dev-cuda
+          
+          # Also tag as latest
+          docker tag ghcr.io/serene4mr/mowbot:main-dev-cuda ghcr.io/serene4mr/mowbot:main-dev-cuda-latest
+          docker push ghcr.io/serene4mr/mowbot:main-dev-cuda-latest
 
       - name: Clean up
         if: always()
@@ -145,33 +156,22 @@ jobs:
           # Clean up Docker images to save space
           docker image prune -f
           docker system prune -f
+          
+          echo "✅ All Docker images built and pushed successfully!"
 
-  # Separate job for creating final manifests
-  create-manifests:
-    needs: build-images
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-    steps:
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create final manifests
+      - name: Summary
+        if: success()
         run: |
-          # Create main-dev-latest manifest combining both platforms
-          docker manifest create ghcr.io/serene4mr/mowbot:main-dev-latest \
-            ghcr.io/serene4mr/mowbot:main-dev-amd64 \
-            ghcr.io/serene4mr/mowbot:main-dev-arm64
-          docker manifest push ghcr.io/serene4mr/mowbot:main-dev-latest
-          
-          # Create base-latest manifest combining both platforms
-          docker manifest create ghcr.io/serene4mr/mowbot:base-latest \
-            ghcr.io/serene4mr/mowbot:base-amd64 \
-            ghcr.io/serene4mr/mowbot:base-arm64
-          docker manifest push ghcr.io/serene4mr/mowbot:base-latest
-          
-          echo "✅ All multi-arch manifests created successfully!"
+          echo "🎉 Build Summary:"
+          echo "✅ Base images: ghcr.io/serene4mr/mowbot:base (multi-arch)"
+          echo "✅ Main-dev images: ghcr.io/serene4mr/mowbot:main-dev (multi-arch)"
+          echo "✅ CUDA images: ghcr.io/serene4mr/mowbot:main-dev-cuda (AMD64)"
+          echo "✅ All images tagged with: $VERSION and latest"
+          echo ""
+          echo "📦 Available images:"
+          echo "  - ghcr.io/serene4mr/mowbot:base"
+          echo "  - ghcr.io/serene4mr/mowbot:base-latest"
+          echo "  - ghcr.io/serene4mr/mowbot:main-dev"
+          echo "  - ghcr.io/serene4mr/mowbot:main-dev-latest"
+          echo "  - ghcr.io/serene4mr/mowbot:main-dev-cuda"
+          echo "  - ghcr.io/serene4mr/mowbot:main-dev-cuda-latest"
