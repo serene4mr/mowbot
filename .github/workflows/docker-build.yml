@@ -71,18 +71,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create dummy src directory to skip repository cloning
+      - name: Set up SSH agent for Docker builds
         run: |
-          mkdir -p src/core/mowbot_sdk
-          mkdir -p src/launcher/mowbot_launch
-          echo "# Dummy repository" > src/core/mowbot_sdk/README.md
-          echo "# Dummy repository" > src/launcher/mowbot_launch/README.md
+          eval $(ssh-agent -s)
+          # Create a dummy SSH key for Docker builds
+          ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N "" -C "github-actions@mowbot"
+          ssh-add ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
 
       - name: Build and push multi-platform images
         run: |
-          # Temporarily replace mowbot.repos with empty content to skip repository cloning
-          cp mowbot.repos mowbot.repos.backup
-          echo "repositories:" > mowbot.repos
           
           cd docker
           chmod +x build.sh
@@ -120,7 +118,3 @@ jobs:
           # Build and push CUDA images (AMD64 only)
           ./build.sh --target main-dev-cuda --platform linux/amd64 --version latest
           docker push ghcr.io/serene4mr/mowbot:main-dev-cuda
-          
-          # Restore mowbot.repos
-          cd ..
-          mv mowbot.repos.backup mowbot.repos
