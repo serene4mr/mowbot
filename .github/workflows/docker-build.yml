@@ -48,8 +48,11 @@ jobs:
             image=moby/buildkit:v0.12.0
           buildkitd-flags: --debug
 
-      - name: Setup SSH key
+      # Single, top-level SSH agent/session for the whole job!
+      - name: Setup SSH key and agent
+        id: ssh-agent
         run: |
+          set -eu
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
@@ -59,17 +62,12 @@ jobs:
           echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
           ssh -T git@github.com || true
 
-      - name: Configure Docker Buildx SSH
-        run: |
-          eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/id_ed25519
-          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
-          docker buildx create --use --name builder-with-ssh --driver docker-container
-
+      # Only source this once, and pass $SSH_AUTH_SOCK to all further scripts/commands!
       - name: Verify SSH agent for Docker
         run: |
+          set -eu
           if [ -n "$SSH_AUTH_SOCK" ] && [ -S "$SSH_AUTH_SOCK" ]; then
-            echo "SSH agent socket exists"
+            ls -la "$SSH_AUTH_SOCK"
           else
             echo "ERROR: SSH agent socket not found"
             exit 1
@@ -100,7 +98,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.PAT_TOKEN }}
 
-      # Build base images in parallel (no prune until after ALL docker manifest push)
+      # Multi-arch base images in parallel (do NOT prune before manifest!)
       - name: Build and push base images (parallel)
         run: |
           set -eu
@@ -126,18 +124,18 @@ jobs:
             ghcr.io/serene4mr/mowbot:base-arm64
           docker manifest push ghcr.io/serene4mr/mowbot:base-latest
 
-      # Aggressive cleanup before your largest build
+      # Aggressive cleanup BEFORE CUDA build ("/tmp" aggressive removal can break agent: limit to apt, Docker, and /var/tmp)
       - name: Aggressive cleanup before CUDA build
         run: |
+          set -eu
           docker system prune -af --volumes
           sudo apt-get clean
           sudo apt-get autoremove -y
           sudo rm -rf /var/lib/apt/lists/*
-          sudo rm -rf /tmp/*
           sudo rm -rf /var/tmp/*
           df -h
 
-      # Build CUDA image
+      # CUDA image—single arch, agent is alive, all SSH Bake targets must have ssh=["default"] in bake.hcl!
       - name: Build and push CUDA images (AMD64 only)
         run: |
           set -eu
@@ -147,7 +145,7 @@ jobs:
           docker tag ghcr.io/serene4mr/mowbot:main-dev-cuda ghcr.io/serene4mr/mowbot:main-dev-cuda-latest
           docker push ghcr.io/serene4mr/mowbot:main-dev-cuda-latest
 
-      # Final cleanup (safe after all pushes)
+      # Final cleanup—only after all builds/manifests
       - name: Final cleanup
         if: always()
         run: |
