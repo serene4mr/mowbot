@@ -5,7 +5,7 @@ This directory contains GitHub Actions workflows for the mowbot project.
 ## Current Workflows
 
 ### `docker-build.yml` - Docker Image Builder
-**Purpose**: Automatically build and push Docker images to GitHub Container Registry
+**Purpose**: Automatically build and push Docker images to GitHub Container Registry using your existing `docker/build.sh` script
 
 **Triggers**:
 - Push to `main` branch (when Docker, Ansible, or setup files change)
@@ -25,20 +25,24 @@ This directory contains GitHub Actions workflows for the mowbot project.
    - GPU-enabled images for CUDA workloads
    - Platform: amd64 only
 
+**Build Method**:
+- Uses your existing `docker/build.sh` script
+- Leverages Docker Bake for advanced build features
+- Maintains consistency with local development workflow
+
 **Image Tags**:
 - `ghcr.io/serene4mr/mowbot:base-latest`
 - `ghcr.io/serene4mr/mowbot:main-dev-latest`
 - `ghcr.io/serene4mr/mowbot:main-latest`
 - `ghcr.io/serene4mr/mowbot:main-dev-cuda-latest`
 - `ghcr.io/serene4mr/mowbot:main-cuda-latest`
-- Branch-specific tags for PRs
 
 **Smart Features**:
+- ✅ Uses your proven build script
 - ✅ Only builds when relevant files change
 - ✅ Only pushes on main branch (not PRs)
 - ✅ Multi-platform support
-- ✅ Automatic tagging
-- ✅ Uses GitHub Container Registry
+- ✅ Consistent with local development
 
 ## How This Solves Your Devcontainer Problem
 
