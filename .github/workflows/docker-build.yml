@@ -1,0 +1,169 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'docker/**'
+      - 'ansible/**'
+      - 'setup-dev-env.sh'
+      - '*.env'
+      - 'ansible-galaxy-requirements.yaml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'docker/**'
+      - 'ansible/**'
+      - 'setup-dev-env.sh'
+      - '*.env'
+      - 'ansible-galaxy-requirements.yaml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-base:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta-base
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=base,enable={{is_default_branch}}
+            type=raw,value=base-latest,enable={{is_default_branch}}
+
+      - name: Build and push base images
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile.base
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-base.outputs.tags }}
+          labels: ${{ steps.meta-base.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            BASE_IMAGE=ros:humble-ros-base-jammy
+            ROS_DISTRO=humble
+
+  build-main:
+    runs-on: ubuntu-latest
+    needs: build-base
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta-main
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=main-dev,enable={{is_default_branch}}
+            type=raw,value=main-dev-latest,enable={{is_default_branch}}
+            type=raw,value=main,enable={{is_default_branch}}
+            type=raw,value=main-latest,enable={{is_default_branch}}
+
+      - name: Build and push main images
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-main.outputs.tags }}
+          labels: ${{ steps.meta-main.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          targets: main-dev,main
+          build-args: |
+            MOWBOT_BASE_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:base
+            MOWBOT_BASE_CUDA_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:base-cuda
+            ROS_DISTRO=humble
+            LIB_DIR=lib
+
+  build-cuda:
+    runs-on: ubuntu-latest
+    needs: build-base
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta-cuda
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=main-dev-cuda,enable={{is_default_branch}}
+            type=raw,value=main-dev-cuda-latest,enable={{is_default_branch}}
+            type=raw,value=main-cuda,enable={{is_default_branch}}
+            type=raw,value=main-cuda-latest,enable={{is_default_branch}}
+
+      - name: Build and push CUDA images
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-cuda.outputs.tags }}
+          labels: ${{ steps.meta-cuda.outputs.labels }}
+          platforms: linux/amd64
+          targets: main-dev-cuda,main-cuda
+          build-args: |
+            MOWBOT_BASE_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:base
+            MOWBOT_BASE_CUDA_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:base-cuda
+            ROS_DISTRO=humble
+            LIB_DIR=lib
