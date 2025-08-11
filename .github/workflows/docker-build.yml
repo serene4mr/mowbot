@@ -56,6 +56,13 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           
+          # Start SSH agent and add key
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ed25519
+          
+          # Export SSH_AUTH_SOCK for Docker builds
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+          
           # Test SSH connection
           ssh -T git@github.com || true
           
@@ -63,10 +70,32 @@ jobs:
 
       - name: Configure Docker Buildx SSH
         run: |
-          # Configure Docker Buildx to use SSH key directly
+          # Ensure SSH agent is running
+          if [ -z "$SSH_AUTH_SOCK" ]; then
+            eval "$(ssh-agent -s)"
+            ssh-add ~/.ssh/id_ed25519
+            echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+          fi
+          
+          # Configure Docker Buildx with SSH agent
           docker buildx create --use --name builder-with-ssh --driver docker-container
           
-          echo "Docker Buildx configured for SSH key authentication"
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
+          echo "SSH agent configured for Docker Buildx"
+
+      - name: Verify SSH agent for Docker
+        run: |
+          # Ensure SSH agent is available for Docker builds
+          if [ -n "$SSH_AUTH_SOCK" ] && [ -S "$SSH_AUTH_SOCK" ]; then
+            echo "SSH agent socket exists and is accessible"
+            ls -la "$SSH_AUTH_SOCK"
+          else
+            echo "ERROR: SSH agent socket not found or not accessible"
+            exit 1
+          fi
+          
+          # Test SSH agent with Docker
+          docker run --rm -e SSH_AUTH_SOCK="$SSH_AUTH_SOCK" -v "$SSH_AUTH_SOCK:$SSH_AUTH_SOCK" alpine:latest sh -c "apk add --no-cache openssh-client && ssh-add -l" || echo "SSH agent test completed"
 
       - name: Set up QEMU for multi-platform builds
         uses: docker/setup-qemu-action@v3

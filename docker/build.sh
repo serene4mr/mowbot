@@ -165,7 +165,7 @@ build_images() {
     if [[ "$target" == "base" || "$target" == "base-cuda" ]]; then
         docker buildx bake --allow=ssh --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
             --set "*.context=$WORKSPACE_ROOT" \
-            --set "*.ssh=~/.ssh/id_ed25519" \
+            --set "*.ssh=default" \
             --set "*.platform=$platform" \
             --set "*.args.ROS_DISTRO=$rosdistro" \
             --set "*.args.BASE_IMAGE=$base_image" \
@@ -179,7 +179,7 @@ build_images() {
         echo "Building base images as dependencies..."
         docker buildx bake --allow=ssh --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
             --set "*.context=$WORKSPACE_ROOT" \
-            --set "*.ssh=~/.ssh/id_ed25519" \
+            --set "*.ssh=default" \
             --set "*.platform=$platform" \
             --set "*.args.ROS_DISTRO=$rosdistro" \
             --set "*.args.BASE_IMAGE=$base_image" \
@@ -192,7 +192,7 @@ build_images() {
         echo "Building main image: $target$image_name_suffix"
         docker buildx bake --allow=ssh --load --progress=plain -f "$SCRIPT_DIR/docker-bake.hcl" -f "$SCRIPT_DIR/docker-bake-cuda.hcl" \
             --set "*.context=$WORKSPACE_ROOT" \
-            --set "*.ssh=~/.ssh/id_ed25519" \
+            --set "*.ssh=default" \
             --set "*.platform=$platform" \
             --set "*.args.ROS_DISTRO=$rosdistro" \
             --set "*.args.MOWBOT_BASE_IMAGE=$mowbot_base_image" \
