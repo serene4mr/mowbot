@@ -65,85 +65,40 @@ jobs:
           # Set environment variables for Git
           export GIT_TERMINAL_PROMPT=0
           
-          # Clear any existing URL rewrites first
-          git config --global --unset-all url.https://github.com/.insteadof || true
-          git config --global --unset-all url.git@github.com:.insteadof || true
-          
-          # Use PAT for private repository access - more explicit configuration
-          git config --global url."https://${{ secrets.PAT_TOKEN }}@github.com/".insteadOf "https://github.com/"
-          git config --global url."https://${{ secrets.PAT_TOKEN }}@github.com/".insteadOf "git@github.com:"
-          
-          # Test the configuration
-          echo "Testing Git configuration..."
-          git config --global --list | grep url
-          
-          # Test direct clone to verify PAT works
-          echo "Testing direct clone..."
-          git clone https://${{ secrets.PAT_TOKEN }}@github.com/serene4mr/mowbot_sdk.git /tmp/test_sdk
-          rm -rf /tmp/test_sdk
-          
           echo "Git configuration completed successfully!"
 
-      - name: Test PAT token permissions
+      - name: Setup SSH key
         run: |
-          echo "Testing PAT token permissions..."
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ed25519
           
-          # Test if we can access the repository contents
-          curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-               https://api.github.com/repos/serene4mr/mowbot_sdk/contents | head -20
-          
-          # Test if we can access the repository branches
-          curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-               https://api.github.com/repos/serene4mr/mowbot_sdk/branches | head -20
-          
-          # Test if we can access the repository commits
-          curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-               https://api.github.com/repos/serene4mr/mowbot_sdk/commits | head -20
+          echo "SSH setup completed!"
 
-      - name: Create repos file with PAT token
+      - name: Test SSH repository access
         run: |
-          echo "Creating mowbot.repos with PAT token..."
-          cp mowbot.repos mowbot.repos.backup
+          echo "Testing SSH repository access..."
           
-          # Create new repos file with PAT token in URLs
-          echo "repositories:" > mowbot.repos
-          echo "  # core" >> mowbot.repos
-          echo "  core/mowbot_sdk:" >> mowbot.repos
-          echo "    type: git" >> mowbot.repos
-          echo "    url: https://${{ secrets.PAT_TOKEN }}@github.com/serene4mr/mowbot_sdk.git" >> mowbot.repos
-          echo "    version: main" >> mowbot.repos
-          echo "" >> mowbot.repos
-          echo "  # external" >> mowbot.repos
-          echo "  #external/..." >> mowbot.repos
-          echo "" >> mowbot.repos
-          echo "  # launcher" >> mowbot.repos
-          echo "  launcher/mowbot_launch:" >> mowbot.repos
-          echo "    type: git" >> mowbot.repos
-          echo "    url: https://${{ secrets.PAT_TOKEN }}@github.com/serene4mr/mowbot_launch.git" >> mowbot.repos
-          echo "    version: main" >> mowbot.repos
-          echo "" >> mowbot.repos
-          echo "  # sensor_component" >> mowbot.repos
-          echo "  #sensor_component/..." >> mowbot.repos
+          # Test direct SSH clone
+          git clone git@github.com:serene4mr/mowbot_sdk.git /tmp/test_ssh_sdk
+          rm -rf /tmp/test_ssh_sdk
           
-          echo "New mowbot.repos file:"
-          cat mowbot.repos
+          echo "SSH repository access test completed successfully!"
+
+      - name: Test vcstool with SSH
+        run: |
+          echo "Testing vcstool with SSH authentication..."
           
-          # Test the new repos file directly
-          echo "Testing new repos file with vcstool..."
+          # Test vcstool with the original repos file (SSH URLs)
           mkdir -p test_src
           vcs import test_src < mowbot.repos
-          echo "Repository cloning test result:"
+          
+          echo "vcstool test result:"
           ls -la test_src/core/ || echo "Directory not found"
           ls -la test_src/launcher/ || echo "Directory not found"
-
-      - name: Debug PAT token access
-        run: |
-          echo "Testing PAT token access..."
-          curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-               https://api.github.com/repos/serene4mr/mowbot_sdk | jq '.name, .private, .permissions'
-          echo "Testing mowbot_launch..."
-          curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-               https://api.github.com/repos/serene4mr/mowbot_launch | jq '.name, .private, .permissions'
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
