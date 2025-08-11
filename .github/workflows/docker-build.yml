@@ -61,6 +61,10 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Set environment variables for Git
+          export GIT_TERMINAL_PROMPT=0
+          
           # Use PAT for private repository access - more explicit configuration
           git config --global url."https://${{ secrets.PAT_TOKEN }}@github.com/".insteadOf "https://github.com/"
           git config --global url."https://${{ secrets.PAT_TOKEN }}@github.com/".insteadOf "git@github.com:"
@@ -73,6 +77,34 @@ jobs:
           echo "Testing direct clone..."
           git clone https://${{ secrets.PAT_TOKEN }}@github.com/serene4mr/mowbot_sdk.git /tmp/test_sdk
           rm -rf /tmp/test_sdk
+          
+          echo "Git configuration completed successfully!"
+
+      - name: Debug Git and vcstool setup
+        run: |
+          echo "=== Git Configuration ==="
+          git config --global --list | grep url
+          
+          echo "=== Environment Variables ==="
+          env | grep -E "(GIT|VCSTOOL|GITHUB)" || echo "No relevant env vars found"
+          
+          echo "=== Testing vcstool directly ==="
+          cd docker
+          mkdir -p test_src
+          echo "repositories:" > test.repos
+          echo "  core/mowbot_sdk:" >> test.repos
+          echo "    type: git" >> test.repos
+          echo "    url: https://${{ secrets.PAT_TOKEN }}@github.com/serene4mr/mowbot_sdk.git" >> test.repos
+          echo "    version: main" >> test.repos
+          
+          echo "Test repos file:"
+          cat test.repos
+          
+          echo "Running vcstool import..."
+          vcs import test_src < test.repos
+          
+          echo "Checking if repository was cloned:"
+          ls -la test_src/core/ || echo "Directory not found"
 
       - name: Debug PAT token access
         run: |
