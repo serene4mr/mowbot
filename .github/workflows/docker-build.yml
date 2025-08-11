@@ -46,24 +46,41 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push base images
+      - name: Build and push multi-platform images
         run: |
           cd docker
           chmod +x build.sh
-          ./build.sh --target base --platform linux/amd64
-          ./build.sh --target base --platform linux/arm64
-          ./build.sh --target base-cuda --platform linux/amd64
-
-      - name: Build and push main images
-        run: |
-          cd docker
-          ./build.sh --target main-dev --platform linux/amd64
-          ./build.sh --target main-dev --platform linux/arm64
-          ./build.sh --target main --platform linux/amd64
-          ./build.sh --target main --platform linux/arm64
-
-      - name: Build and push CUDA images
-        run: |
-          cd docker
-          ./build.sh --target main-dev-cuda --platform linux/amd64
-          ./build.sh --target main-cuda --platform linux/amd64
+          
+          # Build and push base images with proper tagging
+          ./build.sh --target base --platform linux/amd64 --version latest
+          docker tag ghcr.io/serene4mr/mowbot:base ghcr.io/serene4mr/mowbot:base-amd64
+          docker push ghcr.io/serene4mr/mowbot:base-amd64
+          
+          ./build.sh --target base --platform linux/arm64 --version latest
+          docker tag ghcr.io/serene4mr/mowbot:base ghcr.io/serene4mr/mowbot:base-arm64
+          docker push ghcr.io/serene4mr/mowbot:base-arm64
+          
+          # Create and push multi-arch manifest for base
+          docker manifest create ghcr.io/serene4mr/mowbot:base \
+            ghcr.io/serene4mr/mowbot:base-amd64 \
+            ghcr.io/serene4mr/mowbot:base-arm64
+          docker manifest push ghcr.io/serene4mr/mowbot:base
+          
+          # Build and push main-dev images
+          ./build.sh --target main-dev --platform linux/amd64 --version latest
+          docker tag ghcr.io/serene4mr/mowbot:main-dev ghcr.io/serene4mr/mowbot:main-dev-amd64
+          docker push ghcr.io/serene4mr/mowbot:main-dev-amd64
+          
+          ./build.sh --target main-dev --platform linux/arm64 --version latest
+          docker tag ghcr.io/serene4mr/mowbot:main-dev ghcr.io/serene4mr/mowbot:main-dev-arm64
+          docker push ghcr.io/serene4mr/mowbot:main-dev-arm64
+          
+          # Create and push multi-arch manifest for main-dev
+          docker manifest create ghcr.io/serene4mr/mowbot:main-dev \
+            ghcr.io/serene4mr/mowbot:main-dev-amd64 \
+            ghcr.io/serene4mr/mowbot:main-dev-arm64
+          docker manifest push ghcr.io/serene4mr/mowbot:main-dev
+          
+          # Build and push CUDA images (AMD64 only)
+          ./build.sh --target main-dev-cuda --platform linux/amd64 --version latest
+          docker push ghcr.io/serene4mr/mowbot:main-dev-cuda
