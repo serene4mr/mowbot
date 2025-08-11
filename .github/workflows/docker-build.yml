@@ -71,6 +71,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Create dummy src directory to skip repository cloning
+        run: |
+          mkdir -p src/core/mowbot_sdk
+          mkdir -p src/launcher/mowbot_launch
+          echo "# Dummy repository" > src/core/mowbot_sdk/README.md
+          echo "# Dummy repository" > src/launcher/mowbot_launch/README.md
+
       - name: Build and push multi-platform images
         run: |
           cd docker
