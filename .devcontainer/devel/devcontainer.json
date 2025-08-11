@@ -5,7 +5,7 @@
         "context": "..",
         "options": [
             "-t", "mowbot_dev",
-            "--build-arg", "BASE_IMAGE=mowbot:main-dev-latest"
+            "--build-arg", "BASE_IMAGE=ghcr.io/serene4mr/mowbot:main-dev-latest"
         ]
     },
     // "image": "ghcr.io/serene4mr/mowbot:main-dev-latest",
