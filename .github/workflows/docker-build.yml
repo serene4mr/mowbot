@@ -39,6 +39,11 @@ jobs:
       - name: Set up QEMU for multi-platform builds
         uses: docker/setup-qemu-action@v3
 
+      - name: Install vcstool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-vcstool
+
       - name: Log in to Container Registry
         uses: docker/login-action@v3
         with:
