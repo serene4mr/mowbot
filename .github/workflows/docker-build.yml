@@ -92,9 +92,18 @@ jobs:
         run: |
           echo "Testing vcstool with SSH authentication..."
           
-          # Test vcstool with the original repos file (SSH URLs)
+          # Debug: Check Git configuration
+          echo "=== Git Configuration ==="
+          git config --global --list | grep url || echo "No URL rewrites found"
+          
+          # Debug: Check the repos file content
+          echo "=== mowbot.repos content ==="
+          cat mowbot.repos
+          
+          # Debug: Test vcstool with verbose output
+          echo "=== Running vcstool ==="
           mkdir -p test_src
-          vcs import test_src < mowbot.repos
+          vcs import --debug test_src < mowbot.repos || echo "vcstool failed, checking what happened"
           
           echo "vcstool test result:"
           ls -la test_src/core/ || echo "Directory not found"
