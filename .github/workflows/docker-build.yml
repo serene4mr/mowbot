@@ -65,6 +65,10 @@ jobs:
           # Set environment variables for Git
           export GIT_TERMINAL_PROMPT=0
           
+          # Clear any existing URL rewrites first
+          git config --global --unset-all url.https://github.com/.insteadof || true
+          git config --global --unset-all url.git@github.com:.insteadof || true
+          
           # Use PAT for private repository access - more explicit configuration
           git config --global url."https://${{ secrets.PAT_TOKEN }}@github.com/".insteadOf "https://github.com/"
           git config --global url."https://${{ secrets.PAT_TOKEN }}@github.com/".insteadOf "git@github.com:"
@@ -105,6 +109,34 @@ jobs:
           
           echo "Checking if repository was cloned:"
           ls -la test_src/core/ || echo "Directory not found"
+
+      - name: Create repos file with PAT token
+        run: |
+          echo "Creating mowbot.repos with PAT token..."
+          cp mowbot.repos mowbot.repos.backup
+          
+          # Create new repos file with PAT token in URLs
+          echo "repositories:" > mowbot.repos
+          echo "  # core" >> mowbot.repos
+          echo "  core/mowbot_sdk:" >> mowbot.repos
+          echo "    type: git" >> mowbot.repos
+          echo "    url: https://${{ secrets.PAT_TOKEN }}@github.com/serene4mr/mowbot_sdk.git" >> mowbot.repos
+          echo "    version: main" >> mowbot.repos
+          echo "" >> mowbot.repos
+          echo "  # external" >> mowbot.repos
+          echo "  #external/..." >> mowbot.repos
+          echo "" >> mowbot.repos
+          echo "  # launcher" >> mowbot.repos
+          echo "  launcher/mowbot_launch:" >> mowbot.repos
+          echo "    type: git" >> mowbot.repos
+          echo "    url: https://${{ secrets.PAT_TOKEN }}@github.com/serene4mr/mowbot_launch.git" >> mowbot.repos
+          echo "    version: main" >> mowbot.repos
+          echo "" >> mowbot.repos
+          echo "  # sensor_component" >> mowbot.repos
+          echo "  #sensor_component/..." >> mowbot.repos
+          
+          echo "New mowbot.repos file:"
+          cat mowbot.repos
 
       - name: Debug PAT token access
         run: |
