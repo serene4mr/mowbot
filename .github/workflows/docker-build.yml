@@ -49,6 +49,23 @@ jobs:
             image=moby/buildkit:v0.12.0
           buildkitd-flags: --debug
 
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ed25519
+          
+          # Export SSH_AUTH_SOCK for Docker builds
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+          
+          # Test SSH connection
+          ssh -T git@github.com || true
+          
+          echo "SSH setup completed!"
+
       - name: Configure Docker Buildx SSH
         run: |
           # Ensure SSH agent is running and configured
@@ -73,30 +90,6 @@ jobs:
           sudo apt-get install -y python3-pip
           pip install vcstool
 
-      - name: Configure Git for private repositories
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          export GIT_TERMINAL_PROMPT=0
-          echo "Git configuration completed successfully!"
-
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/id_ed25519
-          
-          # Export SSH_AUTH_SOCK for Docker builds
-          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
-          
-          # Test SSH connection
-          ssh -T git@github.com || true
-          
-          echo "SSH setup completed!"
-
       - name: Clean up any Git lock files
         run: |
           echo "Cleaning up any leftover Git lock files..."
@@ -108,6 +101,13 @@ jobs:
           find . -name ".git/MERGE_MODE.lock" -delete 2>/dev/null || true
           find . -name ".git/MERGE_MSG.lock" -delete 2>/dev/null || true
           echo "Git lock cleanup completed!"
+
+      - name: Configure Git for private repositories
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          export GIT_TERMINAL_PROMPT=0
+          echo "Git configuration completed successfully!"
 
       - name: Clean up disk space before build
         run: |
