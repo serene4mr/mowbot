@@ -64,6 +64,15 @@ jobs:
           # Use PAT for private repository access
           git config --global url."https://${{ secrets.PAT_TOKEN }}@github.com/".insteadOf "git@github.com:"
 
+      - name: Debug PAT token access
+        run: |
+          echo "Testing PAT token access..."
+          curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+               https://api.github.com/repos/serene4mr/mowbot_sdk | jq '.name, .private, .permissions'
+          echo "Testing mowbot_launch..."
+          curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+               https://api.github.com/repos/serene4mr/mowbot_launch | jq '.name, .private, .permissions'
+
       - name: Log in to Container Registry
         uses: docker/login-action@v3
         with:
