@@ -80,11 +80,11 @@ jobs:
 
       - name: Build and push multi-platform images
         run: |
+          # Temporarily rename mowbot.repos to skip repository cloning
+          mv mowbot.repos mowbot.repos.backup
+          
           cd docker
           chmod +x build.sh
-          
-          # Temporarily rename mowbot.repos to skip repository cloning
-          mv ../mowbot.repos ../mowbot.repos.backup
           
           # Build and push base images with proper tagging
           ./build.sh --target base --platform linux/amd64 --version latest
@@ -121,4 +121,5 @@ jobs:
           docker push ghcr.io/serene4mr/mowbot:main-dev-cuda
           
           # Restore mowbot.repos
-          mv ../mowbot.repos.backup ../mowbot.repos
+          cd ..
+          mv mowbot.repos.backup mowbot.repos
