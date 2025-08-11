@@ -80,8 +80,9 @@ jobs:
 
       - name: Build and push multi-platform images
         run: |
-          # Temporarily rename mowbot.repos to skip repository cloning
-          mv mowbot.repos mowbot.repos.backup
+          # Temporarily replace mowbot.repos with empty content to skip repository cloning
+          cp mowbot.repos mowbot.repos.backup
+          echo "repositories:" > mowbot.repos
           
           cd docker
           chmod +x build.sh
