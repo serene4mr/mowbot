@@ -49,6 +49,21 @@ jobs:
             image=moby/buildkit:v0.12.0
           buildkitd-flags: --debug
 
+      - name: Configure Docker Buildx SSH
+        run: |
+          # Ensure SSH agent is running and configured
+          if [ -z "$SSH_AUTH_SOCK" ]; then
+            eval "$(ssh-agent -s)"
+            ssh-add ~/.ssh/id_ed25519
+            echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+          fi
+          
+          # Configure Docker Buildx to use SSH agent
+          docker buildx create --use --name builder-with-ssh --driver docker-container --driver-opt network=host
+          
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
+          echo "SSH agent configured for Docker Buildx"
+
       - name: Set up QEMU for multi-platform builds
         uses: docker/setup-qemu-action@v3
 
@@ -57,14 +72,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y python3-pip
           pip install vcstool
-
-      - name: Clean up any Git lock files
-        run: |
-          echo "Cleaning up any leftover Git lock files..."
-          find . -name ".git/index.lock" -delete 2>/dev/null || true
-          find . -name ".git/HEAD.lock" -delete 2>/dev/null || true
-          find . -name ".git/refs/heads/*.lock" -delete 2>/dev/null || true
-          echo "Git lock cleanup completed!"
 
       - name: Configure Git for private repositories
         run: |
@@ -81,8 +88,26 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/id_ed25519
+          
+          # Export SSH_AUTH_SOCK for Docker builds
           echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+          
+          # Test SSH connection
+          ssh -T git@github.com || true
+          
           echo "SSH setup completed!"
+
+      - name: Clean up any Git lock files
+        run: |
+          echo "Cleaning up any leftover Git lock files..."
+          find . -name ".git/index.lock" -delete 2>/dev/null || true
+          find . -name ".git/HEAD.lock" -delete 2>/dev/null || true
+          find . -name ".git/refs/heads/*.lock" -delete 2>/dev/null || true
+          find . -name ".git/refs/tags/*.lock" -delete 2>/dev/null || true
+          find . -name ".git/MERGE_HEAD.lock" -delete 2>/dev/null || true
+          find . -name ".git/MERGE_MODE.lock" -delete 2>/dev/null || true
+          find . -name ".git/MERGE_MSG.lock" -delete 2>/dev/null || true
+          echo "Git lock cleanup completed!"
 
       - name: Clean up disk space before build
         run: |
