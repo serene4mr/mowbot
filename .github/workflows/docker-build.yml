@@ -83,6 +83,9 @@ jobs:
           cd docker
           chmod +x build.sh
           
+          # Temporarily rename mowbot.repos to skip repository cloning
+          mv ../mowbot.repos ../mowbot.repos.backup
+          
           # Build and push base images with proper tagging
           ./build.sh --target base --platform linux/amd64 --version latest
           docker tag ghcr.io/serene4mr/mowbot:base ghcr.io/serene4mr/mowbot:base-amd64
@@ -116,3 +119,6 @@ jobs:
           # Build and push CUDA images (AMD64 only)
           ./build.sh --target main-dev-cuda --platform linux/amd64 --version latest
           docker push ghcr.io/serene4mr/mowbot:main-dev-cuda
+          
+          # Restore mowbot.repos
+          mv ../mowbot.repos.backup ../mowbot.repos
