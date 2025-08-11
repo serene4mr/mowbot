@@ -113,7 +113,6 @@ jobs:
            docker push ghcr.io/serene4mr/mowbot:base-amd64) &
           
           (./build.sh --target base --platform linux/arm64 --version $VERSION && \
-           docker tag ghcr.io/serene4mr/mowbot:base ghcr.io/serene4mr/mowbot:base-arm64 && \
            docker push ghcr.io/serene4mr/mowbot:base-arm64) &
           
           # Wait for both builds to complete
@@ -146,7 +145,6 @@ jobs:
            docker push ghcr.io/serene4mr/mowbot:main-dev-amd64) &
           
           (./build.sh --target main-dev --platform linux/arm64 --version $VERSION && \
-           docker tag ghcr.io/serene4mr/mowbot:main-dev ghcr.io/serene4mr/mowbot:main-dev-arm64 && \
            docker push ghcr.io/serene4mr/mowbot:main-dev-arm64) &
           
           # Wait for both builds to complete
