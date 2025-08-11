@@ -45,12 +45,11 @@ jobs:
           sudo apt-get install -y python3-pip
           pip install vcstool
 
-      - name: Set up SSH for private repositories
+      - name: Configure Git for private repositories
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "git@github.com:"
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
@@ -61,10 +60,6 @@ jobs:
 
       - name: Build and push multi-platform images
         run: |
-          # Start SSH agent for Docker builds
-          eval $(ssh-agent -s)
-          ssh-add ~/.ssh/id_rsa
-          
           cd docker
           chmod +x build.sh
           
