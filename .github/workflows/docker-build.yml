@@ -107,14 +107,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up SSH agent for Docker builds
-        run: |
-          eval $(ssh-agent -s)
-          # Create a dummy SSH key for Docker builds
-          ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N "" -C "github-actions@mowbot"
-          ssh-add ~/.ssh/id_rsa
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-
       - name: Build and push base images
         run: |
           cd docker
