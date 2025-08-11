@@ -56,7 +56,7 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           
-          # Start SSH agent and add key
+          # Start SSH agent and add key (official Docker solution)
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/id_ed25519
           
@@ -70,12 +70,10 @@ jobs:
 
       - name: Configure Docker Buildx SSH
         run: |
-          # Ensure SSH agent is running
-          if [ -z "$SSH_AUTH_SOCK" ]; then
-            eval "$(ssh-agent -s)"
-            ssh-add ~/.ssh/id_ed25519
-            echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
-          fi
+          # Ensure SSH agent is running and key is loaded
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ed25519
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
           
           # Configure Docker Buildx with SSH agent
           docker buildx create --use --name builder-with-ssh --driver docker-container
@@ -143,6 +141,17 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.PAT_TOKEN }}
+
+      - name: Ensure SSH agent is available
+        run: |
+          # Ensure SSH agent is running and key is loaded before builds
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ed25519
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+          
+          # Verify SSH agent is working
+          ssh-add -l
+          echo "SSH agent is ready for Docker builds"
 
       - name: Build and push base images (parallel)
         run: |
