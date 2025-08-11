@@ -84,31 +84,21 @@ jobs:
           
           echo "Git configuration completed successfully!"
 
-      - name: Debug Git and vcstool setup
+      - name: Test PAT token permissions
         run: |
-          echo "=== Git Configuration ==="
-          git config --global --list | grep url
+          echo "Testing PAT token permissions..."
           
-          echo "=== Environment Variables ==="
-          env | grep -E "(GIT|VCSTOOL|GITHUB)" || echo "No relevant env vars found"
+          # Test if we can access the repository contents
+          curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+               https://api.github.com/repos/serene4mr/mowbot_sdk/contents | head -20
           
-          echo "=== Testing vcstool directly ==="
-          cd docker
-          mkdir -p test_src
-          echo "repositories:" > test.repos
-          echo "  core/mowbot_sdk:" >> test.repos
-          echo "    type: git" >> test.repos
-          echo "    url: https://${{ secrets.PAT_TOKEN }}@github.com/serene4mr/mowbot_sdk.git" >> test.repos
-          echo "    version: main" >> test.repos
+          # Test if we can access the repository branches
+          curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+               https://api.github.com/repos/serene4mr/mowbot_sdk/branches | head -20
           
-          echo "Test repos file:"
-          cat test.repos
-          
-          echo "Running vcstool import..."
-          vcs import test_src < test.repos
-          
-          echo "Checking if repository was cloned:"
-          ls -la test_src/core/ || echo "Directory not found"
+          # Test if we can access the repository commits
+          curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+               https://api.github.com/repos/serene4mr/mowbot_sdk/commits | head -20
 
       - name: Create repos file with PAT token
         run: |
