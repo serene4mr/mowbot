@@ -58,6 +58,14 @@ jobs:
           sudo apt-get install -y python3-pip
           pip install vcstool
 
+      - name: Clean up any Git lock files
+        run: |
+          echo "Cleaning up any leftover Git lock files..."
+          find . -name ".git/index.lock" -delete 2>/dev/null || true
+          find . -name ".git/HEAD.lock" -delete 2>/dev/null || true
+          find . -name ".git/refs/heads/*.lock" -delete 2>/dev/null || true
+          echo "Git lock cleanup completed!"
+
       - name: Configure Git for private repositories
         run: |
           git config --global user.name "github-actions[bot]"
