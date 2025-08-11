@@ -2,96 +2,114 @@
 
 This directory contains GitHub Actions workflows for the mowbot project.
 
-## Workflows
+## Current Workflows
 
-### 1. `docker-build.yml`
-**Purpose**: Build and push Docker images to GitHub Container Registry
+### `docker-build.yml` - Docker Image Builder
+**Purpose**: Automatically build and push Docker images to GitHub Container Registry
 
 **Triggers**:
 - Push to `main` branch (when Docker, Ansible, or setup files change)
-- Pull requests to `main` branch
+- Pull requests to `main` branch (builds but doesn't push)
 - Manual trigger (`workflow_dispatch`)
 
-**Jobs**:
-- `build-base`: Builds base images (base, base-cuda)
-- `build-main`: Builds main development and production images
-- `build-cuda`: Builds CUDA-enabled images
+**What it builds**:
+1. **Base Images** (`base`, `base-cuda`)
+   - Foundation images with ROS and basic tools
+   - Multi-platform: amd64, arm64
 
-**Features**:
-- Multi-platform builds (amd64, arm64)
-- Automatic tagging based on branch/PR/commit
-- Conditional pushing (only pushes on main branch, not PRs)
+2. **Main Images** (`main-dev`, `main`)
+   - Development and production images
+   - Multi-platform: amd64, arm64
 
-### 2. `test.yml`
-**Purpose**: Run tests, linting, and security scans
+3. **CUDA Images** (`main-dev-cuda`, `main-cuda`)
+   - GPU-enabled images for CUDA workloads
+   - Platform: amd64 only
 
-**Triggers**:
-- Push to `main` branch
-- Pull requests to `main` branch
-- Manual trigger
+**Image Tags**:
+- `ghcr.io/serene4mr/mowbot:base-latest`
+- `ghcr.io/serene4mr/mowbot:main-dev-latest`
+- `ghcr.io/serene4mr/mowbot:main-latest`
+- `ghcr.io/serene4mr/mowbot:main-dev-cuda-latest`
+- `ghcr.io/serene4mr/mowbot:main-cuda-latest`
+- Branch-specific tags for PRs
 
-**Jobs**:
-- `lint`: YAML and Ansible linting
-- `test-docker`: Docker build testing (no push)
-- `security-scan`: Vulnerability scanning with Trivy
+**Smart Features**:
+- ✅ Only builds when relevant files change
+- ✅ Only pushes on main branch (not PRs)
+- ✅ Multi-platform support
+- ✅ Automatic tagging
+- ✅ Uses GitHub Container Registry
 
-### 3. `release.yml`
-**Purpose**: Create releases and push tagged images
+## How This Solves Your Devcontainer Problem
 
-**Triggers**:
-- Push of version tags (e.g., `v1.0.0`)
-
-**Features**:
-- Builds all image variants for release
-- Creates GitHub release
-- Pushes images with semantic version tags
-
-### 4. `dependabot.yml`
-**Purpose**: Auto-merge Dependabot PRs
-
-**Triggers**:
-- Pull requests from Dependabot
-
-**Features**:
-- Auto-merges patch version updates
-- Requires manual review for major/minor updates
-
-## Configuration Files
-
-### `.yamllint.yml`
-YAML linting configuration for consistent formatting.
-
-### `dependabot.yml`
-Dependabot configuration for automated dependency updates.
+1. **Automated Builds**: Every push to main builds fresh images
+2. **Available Images**: Images are pushed to `ghcr.io/serene4mr/mowbot:main-dev-latest`
+3. **Devcontainer Ready**: Your devcontainer can now pull from the registry
+4. **No More Local Builds**: No need to build images manually
 
 ## Usage
 
-### Manual Workflow Execution
-You can manually trigger workflows from the GitHub Actions tab:
+### Manual Trigger
 1. Go to Actions tab in your repository
-2. Select the workflow you want to run
+2. Select "Build and Push Docker Images"
 3. Click "Run workflow"
-4. Choose branch and parameters
+4. Choose branch and click "Run workflow"
 
-### Creating Releases
-To create a release:
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
+### Automatic Trigger
+The workflow runs automatically when you:
+- Push to `main` branch with changes to:
+  - `docker/` directory
+  - `ansible/` directory
+  - `setup-dev-env.sh`
+  - Environment files (`*.env`)
+  - `ansible-galaxy-requirements.yaml`
 
-### Viewing Workflow Results
-- Check the Actions tab for workflow status
+### Viewing Results
+- Check the Actions tab for build status
 - View logs for debugging
-- Monitor security scan results in the Security tab
+- Images are available at `ghcr.io/serene4mr/mowbot`
+
+## Future Workflows (Planned)
+
+### 1. Testing Workflow
+- YAML linting
+- Ansible validation
+- Docker build testing
+- Security scanning
+
+### 2. Release Workflow
+- Create GitHub releases
+- Tagged Docker images
+- Release notes
+
+### 3. Dependency Management
+- Automated dependency updates
+- Security vulnerability scanning
 
 ## Permissions
 
-The workflows use the following permissions:
+The workflow uses:
 - `contents: read` - Read repository contents
 - `packages: write` - Push to GitHub Container Registry
-- `contents: write` - Create releases (release workflow only)
 
 ## Secrets
 
-The workflows use the built-in `GITHUB_TOKEN` secret for authentication. No additional secrets are required.
+Uses the built-in `GITHUB_TOKEN` secret - no additional setup required.
+
+## Troubleshooting
+
+### Build Failures
+1. Check the Actions tab for error logs
+2. Verify Dockerfile syntax
+3. Check build arguments
+4. Ensure all required files exist
+
+### Image Not Found
+1. Wait for workflow to complete
+2. Check if images were pushed successfully
+3. Verify image tags in registry
+
+### Permission Issues
+1. Ensure repository has package write permissions
+2. Check if `GITHUB_TOKEN` is available
+3. Verify workflow permissions are set correctly
