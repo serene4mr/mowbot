@@ -127,6 +127,14 @@ jobs:
           
           echo "New mowbot.repos file:"
           cat mowbot.repos
+          
+          # Test the new repos file directly
+          echo "Testing new repos file with vcstool..."
+          mkdir -p test_src
+          vcs import test_src < mowbot.repos
+          echo "Repository cloning test result:"
+          ls -la test_src/core/ || echo "Directory not found"
+          ls -la test_src/launcher/ || echo "Directory not found"
 
       - name: Debug PAT token access
         run: |
