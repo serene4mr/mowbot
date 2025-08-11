@@ -163,7 +163,7 @@ build_images() {
     
     # Build base images if target is base or base-cuda
     if [[ "$target" == "base" || "$target" == "base-cuda" ]]; then
-        docker buildx bake --allow=ssh --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
+        docker buildx bake --allow=ssh --load --progress=plain \
             --set "*.context=$WORKSPACE_ROOT" \
             --set "*.ssh=default" \
             --set "*.platform=$platform" \
@@ -176,7 +176,8 @@ build_images() {
             "$target"
     else
         # Build base images first (needed as dependencies for main images)
-        docker buildx bake --allow=ssh --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
+        echo "Building base images as dependencies..."
+        docker buildx bake --allow=ssh --load --progress=plain \
             --set "*.context=$WORKSPACE_ROOT" \
             --set "*.ssh=default" \
             --set "*.platform=$platform" \
@@ -188,7 +189,8 @@ build_images() {
             --set "base-cuda.tags=ghcr.io/serene4mr/mowbot:base-cuda"
         
         # Then build the requested main image
-        docker buildx bake --allow=ssh --load --progress=plain -f "$SCRIPT_DIR/docker-bake.hcl" -f "$SCRIPT_DIR/docker-bake-cuda.hcl" \
+        echo "Building main image: $target$image_name_suffix"
+        docker buildx bake --allow=ssh --load --progress=plain \
             --set "*.context=$WORKSPACE_ROOT" \
             --set "*.ssh=default" \
             --set "*.platform=$platform" \

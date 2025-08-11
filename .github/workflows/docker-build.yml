@@ -30,7 +30,7 @@ env:
 jobs:
   build-images:
     runs-on: ubuntu-latest
-    timeout-minutes: 180  # 3 hour timeout
+    timeout-minutes: 120  # Reduced timeout
     permissions:
       contents: read
       packages: write
@@ -40,7 +40,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for better caching
+          fetch-depth: 1  # Shallow clone for faster checkout
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -62,10 +62,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Set environment variables for Git
           export GIT_TERMINAL_PROMPT=0
-          
           echo "Git configuration completed successfully!"
 
       - name: Setup SSH key
@@ -76,42 +73,17 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/id_ed25519
-          
-          # Export SSH_AUTH_SOCK for Docker builds
           echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
-          
           echo "SSH setup completed!"
 
-      - name: Test SSH repository access
+      - name: Clean up disk space before build
         run: |
-          echo "Testing SSH repository access..."
-          
-          # Test direct SSH clone
-          git clone git@github.com:serene4mr/mowbot_sdk.git /tmp/test_ssh_sdk
-          rm -rf /tmp/test_ssh_sdk
-          
-          echo "SSH repository access test completed successfully!"
-
-      - name: Test vcstool with SSH
-        run: |
-          echo "Testing vcstool with SSH authentication..."
-          
-          # Debug: Check Git configuration
-          echo "=== Git Configuration ==="
-          git config --global --list | grep url || echo "No URL rewrites found"
-          
-          # Debug: Check the repos file content
-          echo "=== mowbot.repos content ==="
-          cat mowbot.repos
-          
-          # Debug: Test vcstool with verbose output
-          echo "=== Running vcstool ==="
-          mkdir -p test_src
-          vcs import --debug test_src < mowbot.repos || echo "vcstool failed, checking what happened"
-          
-          echo "vcstool test result:"
-          ls -la test_src/core/ || echo "Directory not found"
-          ls -la test_src/launcher/ || echo "Directory not found"
+          echo "Cleaning up disk space before build..."
+          docker system prune -af --volumes
+          sudo apt-get clean
+          sudo apt-get autoremove -y
+          df -h
+          echo "Disk cleanup completed!"
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
@@ -120,32 +92,27 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.PAT_TOKEN }}
 
-      - name: Debug package permissions
-        run: |
-          echo "Testing package registry access..."
-          echo "Repository: ${{ github.repository }}"
-          echo "Actor: ${{ github.actor }}"
-          
-          # Test if we can access the package registry
-          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-               https://api.github.com/user/packages | head -20 || echo "Package access test failed"
-
-      - name: Build and push base images
+      - name: Build and push base images (parallel)
         run: |
           cd docker
           chmod +x build.sh
           
-          echo "Building base images for both platforms..."
+          echo "Building base images in parallel..."
           
-          # Build base for AMD64
-          ./build.sh --target base --platform linux/amd64 --version $VERSION
-          docker tag ghcr.io/serene4mr/mowbot:base ghcr.io/serene4mr/mowbot:base-amd64
-          docker push ghcr.io/serene4mr/mowbot:base-amd64
+          # Build base for both platforms in parallel
+          (./build.sh --target base --platform linux/amd64 --version $VERSION && \
+           docker tag ghcr.io/serene4mr/mowbot:base ghcr.io/serene4mr/mowbot:base-amd64 && \
+           docker push ghcr.io/serene4mr/mowbot:base-amd64) &
           
-          # Build base for ARM64
-          ./build.sh --target base --platform linux/arm64 --version $VERSION
-          docker tag ghcr.io/serene4mr/mowbot:base ghcr.io/serene4mr/mowbot:base-arm64
-          docker push ghcr.io/serene4mr/mowbot:base-arm64
+          (./build.sh --target base --platform linux/arm64 --version $VERSION && \
+           docker tag ghcr.io/serene4mr/mowbot:base ghcr.io/serene4mr/mowbot:base-arm64 && \
+           docker push ghcr.io/serene4mr/mowbot:base-arm64) &
+          
+          # Wait for both builds to complete
+          wait
+          
+          # Clean up after base builds
+          docker system prune -f
           
           # Create multi-arch manifest for base
           docker manifest create ghcr.io/serene4mr/mowbot:base \
@@ -159,21 +126,26 @@ jobs:
             ghcr.io/serene4mr/mowbot:base-arm64
           docker manifest push ghcr.io/serene4mr/mowbot:base-latest
 
-      - name: Build and push main-dev images
+      - name: Build and push main-dev images (parallel)
         run: |
           cd docker
           
-          echo "Building main-dev images for both platforms..."
+          echo "Building main-dev images in parallel..."
           
-          # Build main-dev for AMD64
-          ./build.sh --target main-dev --platform linux/amd64 --version $VERSION
-          docker tag ghcr.io/serene4mr/mowbot:main-dev ghcr.io/serene4mr/mowbot:main-dev-amd64
-          docker push ghcr.io/serene4mr/mowbot:main-dev-amd64
+          # Build main-dev for both platforms in parallel
+          (./build.sh --target main-dev --platform linux/amd64 --version $VERSION && \
+           docker tag ghcr.io/serene4mr/mowbot:main-dev ghcr.io/serene4mr/mowbot:main-dev-amd64 && \
+           docker push ghcr.io/serene4mr/mowbot:main-dev-amd64) &
           
-          # Build main-dev for ARM64
-          ./build.sh --target main-dev --platform linux/arm64 --version $VERSION
-          docker tag ghcr.io/serene4mr/mowbot:main-dev ghcr.io/serene4mr/mowbot:main-dev-arm64
-          docker push ghcr.io/serene4mr/mowbot:main-dev-arm64
+          (./build.sh --target main-dev --platform linux/arm64 --version $VERSION && \
+           docker tag ghcr.io/serene4mr/mowbot:main-dev ghcr.io/serene4mr/mowbot:main-dev-arm64 && \
+           docker push ghcr.io/serene4mr/mowbot:main-dev-arm64) &
+          
+          # Wait for both builds to complete
+          wait
+          
+          # Clean up after main-dev builds
+          docker system prune -f
           
           # Create multi-arch manifest for main-dev
           docker manifest create ghcr.io/serene4mr/mowbot:main-dev \
@@ -201,13 +173,10 @@ jobs:
           docker tag ghcr.io/serene4mr/mowbot:main-dev-cuda ghcr.io/serene4mr/mowbot:main-dev-cuda-latest
           docker push ghcr.io/serene4mr/mowbot:main-dev-cuda-latest
 
-      - name: Clean up
+      - name: Final cleanup
         if: always()
         run: |
-          # Clean up Docker images to save space
-          docker image prune -f
-          docker system prune -f
-          
+          docker system prune -af --volumes
           echo "✅ All Docker images built and pushed successfully!"
 
       - name: Summary
