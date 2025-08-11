@@ -48,8 +48,7 @@ jobs:
             image=moby/buildkit:v0.12.0
           buildkitd-flags: --debug
 
-      # Single, top-level SSH agent/session for the whole job!
-      - name: Setup SSH key and agent
+      - name: Setup SSH key and agent (top-level, once)
         id: ssh-agent
         run: |
           set -eu
@@ -62,7 +61,6 @@ jobs:
           echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
           ssh -T git@github.com || true
 
-      # Only source this once, and pass $SSH_AUTH_SOCK to all further scripts/commands!
       - name: Verify SSH agent for Docker
         run: |
           set -eu
@@ -76,7 +74,7 @@ jobs:
             -v "$SSH_AUTH_SOCK:$SSH_AUTH_SOCK" alpine:latest \
             sh -c "apk add --no-cache openssh-client && ssh-add -l" || true
 
-      - name: Set up QEMU
+      - name: Set up QEMU for multi-platform
         uses: docker/setup-qemu-action@v3
 
       - name: Install vcstool
@@ -98,33 +96,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.PAT_TOKEN }}
 
-      # Multi-arch base images in parallel (do NOT prune before manifest!)
+      # Multi-arch BASE build (no pruning before manifests!)
       - name: Build and push base images (parallel)
         run: |
           set -eu
           cd docker
           chmod +x build.sh
-
           (./build.sh --target base --platform linux/amd64 --version $VERSION && \
            docker tag ghcr.io/serene4mr/mowbot:base ghcr.io/serene4mr/mowbot:base-amd64 && \
            docker push ghcr.io/serene4mr/mowbot:base-amd64) &
-
           (./build.sh --target base --platform linux/arm64 --version $VERSION && \
            docker push ghcr.io/serene4mr/mowbot:base-arm64) &
-
           wait
-
           docker manifest create ghcr.io/serene4mr/mowbot:base \
             ghcr.io/serene4mr/mowbot:base-amd64 \
             ghcr.io/serene4mr/mowbot:base-arm64
           docker manifest push ghcr.io/serene4mr/mowbot:base
-
           docker manifest create ghcr.io/serene4mr/mowbot:base-latest \
             ghcr.io/serene4mr/mowbot:base-amd64 \
             ghcr.io/serene4mr/mowbot:base-arm64
           docker manifest push ghcr.io/serene4mr/mowbot:base-latest
 
-      # Aggressive cleanup BEFORE CUDA build ("/tmp" aggressive removal can break agent: limit to apt, Docker, and /var/tmp)
+      # MAXIMUM CLEANUP before CUDA build (do NOT remove /tmp; agent uses it! Only /var/tmp)
       - name: Aggressive cleanup before CUDA build
         run: |
           set -eu
@@ -135,7 +128,6 @@ jobs:
           sudo rm -rf /var/tmp/*
           df -h
 
-      # CUDA image—single arch, agent is alive, all SSH Bake targets must have ssh=["default"] in bake.hcl!
       - name: Build and push CUDA images (AMD64 only)
         run: |
           set -eu
@@ -145,7 +137,6 @@ jobs:
           docker tag ghcr.io/serene4mr/mowbot:main-dev-cuda ghcr.io/serene4mr/mowbot:main-dev-cuda-latest
           docker push ghcr.io/serene4mr/mowbot:main-dev-cuda-latest
 
-      # Final cleanup—only after all builds/manifests
       - name: Final cleanup
         if: always()
         run: |
