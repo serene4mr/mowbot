@@ -52,6 +52,17 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           # Use PAT for private repository access
           git config --global url."https://${{ secrets.PAT_TOKEN }}@github.com/".insteadOf "git@github.com:"
+          
+      - name: Debug repository access
+        run: |
+          echo "Testing repository access..."
+          curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+               https://api.github.com/user/repos | grep -E '"name":|"full_name":' | head -20
+          echo "Testing specific repositories..."
+          curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+               https://api.github.com/repos/serene4mr/mowbot_sdk
+          curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+               https://api.github.com/repos/serene4mr/mowbot_launch
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
