@@ -1,0 +1,5 @@
+To run simulation demo:
+
+- run gzsim from other container
+- run ros2 launch mowbot_launch gzsim_bringup.launch.py
+- run ros2 launch mowbot_launch mowbot.launch.py use_sim_time:=true launch_robot:=false
