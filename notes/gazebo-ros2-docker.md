@@ -7,6 +7,7 @@ Use Gazebo Harmonic (8.9.0) running on the host and access it from a ROS 2 Humbl
 - Gazebo Harmonic 8.9.0 installed on both host and container
 - ROS 2 Humble in Docker container
 - Matching Gazebo versions for protocol compatibility
+- Remember ros2 humble gzharmonic pkg
 
 ## Host Side (Native)
 
