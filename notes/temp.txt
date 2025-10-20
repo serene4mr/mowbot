@@ -3,3 +3,13 @@ To run simulation demo:
 - run gzsim from other container
 - run ros2 launch mowbot_launch gzsim_bringup.launch.py
 - run ros2 launch mowbot_launch mowbot.launch.py use_sim_time:=true launch_robot:=false
+
+
+source ./install/setup.bash
+
+ros2 launch mowbot_launch gzsim_bringup.launch.py
+ros2 launch mowbot_launch mowbot.launch.py use_sim_time:=true launch_robot:=false
+ros2 launch mowbot_launch mapviz_localization.launch.py
+ros2 run mowbot_mission_bridge mission_bridge_node --ros-args --params-file src/core/mowbot_sdk/misc/mowbot_mission_bridge/config/mission_params.yaml
+
+ros2 launch nav2_bringup rviz_launch.py 
