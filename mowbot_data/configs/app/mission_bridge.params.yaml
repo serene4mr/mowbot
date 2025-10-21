@@ -1,0 +1,74 @@
+# Mission Bridge Node - Production Parameters
+# ===========================================
+#
+# Configuration for production deployment with real Nav2 stack.
+# This is the full VDA5050 mission bridge with actual navigation capabilities.
+
+mission_bridge_node:
+  ros__parameters:
+    # ========================================================================
+    # MQTT Broker Configuration
+    # ========================================================================
+    mqtt_broker: "localhost"
+    mqtt_port: 1883
+    mqtt_username: ""
+    mqtt_password: ""
+    
+    # ========================================================================
+    # AGV Identity (VDA5050)
+    # ========================================================================
+    manufacturer: "MowbotTech"
+    serial_number: "MB001"
+    vda5050_version: "2.0"
+    vda5050_interface: "uagv"
+    
+    # ========================================================================
+    # GPS Reference Point
+    # ========================================================================
+    # Set your local GPS origin point (where robot spawns / starts)
+    gps_lat_ref: 37.5665  # Seoul City Hall (example)
+    gps_lon_ref: 126.9780
+    gps_frame_id: "map"  # Must be "map" for Nav2 compatibility (FromLL outputs in map frame)
+    
+    # GPS Conversion Method:
+    # - "reference_based": Simple flat-earth approximation (fast, good for <100km)
+    # - "robot_localization": Use robot_localization FromLL service (requires navsat_transform_node)
+    gps_conversion_method: "robot_localization"
+    
+    # ========================================================================
+    # GPS and Heading Topics
+    # ========================================================================
+    gps_topic: "/gnss/fix_filtered"      # NavSatFix topic for position
+    heading_topic: "/gnss/heading"        # Imu topic for orientation
+    # Note: dual_gnss_compass publishes heading with heading_offset_rad: 1.5708
+    #       which converts from ENU to compass/NED convention
+    
+    # ========================================================================
+    # Navigation Settings (Real Nav2)
+    # ========================================================================
+    nav_timeout: 120.0  # Navigation timeout in seconds (2 minutes for real navigation)
+    nav2_action_server: "navigate_to_pose"  # NavigateToPose action server name
+    
+    # ========================================================================
+    # State Publishing
+    # ========================================================================
+    state_publish_rate: 1.0  # Hz (1 = publish state every 1 second)
+    
+    # ========================================================================
+    # Message Validation
+    # ========================================================================
+    validate_vda5050_messages: true  # Enable VDA5050 message validation
+    
+    # ========================================================================
+    # Diagnostics Settings
+    # ========================================================================
+    diagnostics_topic: "/diagnostics"
+    manual_mode_key: "platform_control_mode"
+    manual_mode_value: "MANUAL"
+    auto_mode_value: "AUTO"
+    
+    # ========================================================================
+    # Order Processing
+    # ========================================================================
+    accept_orders_when_busy: false  # Reject new orders while executing existing order
+

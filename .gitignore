@@ -6,3 +6,5 @@
 /.vscode
 
 /ref
+# Environment files (robot instance config)
+mowbot_data/.env

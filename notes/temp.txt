@@ -13,3 +13,30 @@ ros2 launch mowbot_launch mapviz_localization.launch.py
 ros2 run mowbot_mission_bridge mission_bridge_node --ros-args --params-file src/core/mowbot_sdk/misc/mowbot_mission_bridge/config/mission_params.yaml
 
 ros2 launch nav2_bringup rviz_launch.py 
+
+
+
+
+# Terminal 1 - Robot 1 (Domain 0)
+export ROS_DOMAIN_ID=0
+ros2 launch mowbot_launch gzsim_bringup.launch.py \
+  robot_id:=mowbot_001 x:=0 y:=0 data_path:=/workspaces/mowbot/mowbot_data
+
+# Terminal 2 - Robot 1 Stack (Domain 0)
+export ROS_DOMAIN_ID=0
+ros2 launch mowbot_launch mowbot.launch.py \
+  robot_id:=mowbot_001 data_path:=/workspaces/mowbot/mowbot_data \
+  launch_robot:=false launch_sensing:=true launch_sensing_driver:=false \
+  launch_localization:=true launch_nav2:=true launch_app:=true use_sim_time:=true
+
+# Terminal 3 - Robot 2 (Domain 1) 
+export ROS_DOMAIN_ID=1
+ros2 launch mowbot_launch gzsim_bringup.launch.py \
+  robot_id:=mowbot_002 x:=5 y:=0 data_path:=/workspaces/mowbot/mowbot_data
+
+# Terminal 4 - Robot 2 Stack (Domain 1)
+export ROS_DOMAIN_ID=1
+ros2 launch mowbot_launch mowbot.launch.py \
+  robot_id:=mowbot_002 data_path:=/workspaces/mowbot/mowbot_data \
+  launch_robot:=false launch_sensing:=true launch_sensing_driver:=false \
+  launch_localization:=true launch_nav2:=true launch_app:=true use_sim_time:=true
