@@ -2,7 +2,7 @@ repositories:
   # core
   core/mowbot_sdk:
     type: git
-    url: git@github.com:serene4mr/mowbot_sdk.git
+    url: https://github.com/serene4mr/mowbot_sdk.git
     version: main
 
   # external
@@ -11,11 +11,11 @@ repositories:
   # launcher
   launcher/mowbot_launch:
     type: git
-    url: git@github.com:serene4mr/mowbot_launch.git
+    url: https://github.com/serene4mr/mowbot_launch.git
     version: main
 
   # sensor_component
   sensor_component:
     type: git
-    url: git@github.com:serene4mr/mowbot_ext.git
+    url: https://github.com/serene4mr/mowbot_ext.git
     version: main
