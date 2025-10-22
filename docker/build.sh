@@ -163,7 +163,7 @@ build_images() {
     
     # Build base images if target is base or base-cuda
     if [[ "$target" == "base" || "$target" == "base-cuda" ]]; then
-        docker buildx bake --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
+        docker buildx bake --allow=ssh --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
             --set "*.context=$WORKSPACE_ROOT" \
             --set "*.ssh=default" \
             --set "*.platform=$platform" \
@@ -177,7 +177,7 @@ build_images() {
     else
         # Build base images first (needed as dependencies for main images)
         echo "Building base images as dependencies..."
-        docker buildx bake --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
+        docker buildx bake --allow=ssh --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
             --set "*.context=$WORKSPACE_ROOT" \
             --set "*.ssh=default" \
             --set "*.platform=$platform" \
@@ -190,7 +190,7 @@ build_images() {
         
         # Then build the requested main image
         echo "Building main image: $target$image_name_suffix"
-        docker buildx bake --load --progress=plain -f "$SCRIPT_DIR/docker-bake.hcl" -f "$SCRIPT_DIR/docker-bake-cuda.hcl" \
+        docker buildx bake --allow=ssh --load --progress=plain -f "$SCRIPT_DIR/docker-bake.hcl" -f "$SCRIPT_DIR/docker-bake-cuda.hcl" \
             --set "*.context=$WORKSPACE_ROOT" \
             --set "*.ssh=default" \
             --set "*.platform=$platform" \
