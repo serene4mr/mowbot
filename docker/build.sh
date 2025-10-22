@@ -142,6 +142,15 @@ clone_repositories() {
     fi
 }
 
+# Check if Docker supports --allow flag
+check_docker_allow_support() {
+    if docker buildx bake --help 2>&1 | grep -q "\-\-allow"; then
+        echo "--allow=ssh"
+    else
+        echo ""
+    fi
+}
+
 # Build images
 build_images() {
     # https://github.com/docker/buildx/issues/484
@@ -159,11 +168,15 @@ build_images() {
     echo "Target: $target"
     echo "Version: $VERSION"
 
+    # Check Docker version support
+    ALLOW_FLAG=$(check_docker_allow_support)
+    echo "Docker --allow support: $([ -n "$ALLOW_FLAG" ] && echo "Yes" || echo "No")"
+
     set -x
     
     # Build base images if target is base or base-cuda
     if [[ "$target" == "base" || "$target" == "base-cuda" ]]; then
-        docker buildx bake --allow=ssh --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
+        docker buildx bake $ALLOW_FLAG --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
             --set "*.context=$WORKSPACE_ROOT" \
             --set "*.ssh=default" \
             --set "*.platform=$platform" \
@@ -177,7 +190,7 @@ build_images() {
     else
         # Build base images first (needed as dependencies for main images)
         echo "Building base images as dependencies..."
-        docker buildx bake --allow=ssh --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
+        docker buildx bake $ALLOW_FLAG --load --progress=plain -f "$SCRIPT_DIR/docker-bake-base.hcl" \
             --set "*.context=$WORKSPACE_ROOT" \
             --set "*.ssh=default" \
             --set "*.platform=$platform" \
@@ -190,7 +203,7 @@ build_images() {
         
         # Then build the requested main image
         echo "Building main image: $target$image_name_suffix"
-        docker buildx bake --allow=ssh --load --progress=plain -f "$SCRIPT_DIR/docker-bake.hcl" -f "$SCRIPT_DIR/docker-bake-cuda.hcl" \
+        docker buildx bake $ALLOW_FLAG --load --progress=plain -f "$SCRIPT_DIR/docker-bake.hcl" -f "$SCRIPT_DIR/docker-bake-cuda.hcl" \
             --set "*.context=$WORKSPACE_ROOT" \
             --set "*.ssh=default" \
             --set "*.platform=$platform" \
