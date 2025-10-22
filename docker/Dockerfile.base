@@ -4,6 +4,7 @@ ARG BASE_IMAGE
 FROM $BASE_IMAGE AS base
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG ROS_DISTRO
+ENV CCACHE_DIR="/root/.ccache"
 
 # Copy files
 COPY setup-dev-env.sh ansible-galaxy-requirements.yaml amd64.env arm64.env py_requirements.txt /mowbot/
@@ -13,6 +14,10 @@ COPY docker/scripts/cleanup_apt.sh /mowbot/cleanup_apt.sh
 RUN chmod +x /mowbot/cleanup_apt.sh
 COPY docker/scripts/cleanup_system.sh /mowbot/cleanup_system.sh
 RUN chmod +x /mowbot/cleanup_system.sh
+COPY docker/scripts/resolve_rosdep_keys.sh /mowbot/resolve_rosdep_keys.sh
+RUN chmod +x /mowbot/resolve_rosdep_keys.sh
+COPY docker/scripts/build_and_clean.sh /mowbot/build_and_clean.sh
+RUN chmod +x /mowbot/build_and_clean.sh
 WORKDIR /mowbot
 
 # Install apt packages and add GitHub to known hosts for private repositories
@@ -54,11 +59,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # Install Python packages
 RUN pip install --no-cache-dir -r /mowbot/py_requirements.txt
 
+# Build ROS2 packages with ccache
 # hadolint ignore=SC1091
 RUN --mount=type=cache,target=${CCACHE_DIR} \
-    # --mount=type=bind,source=/src,target=/mowbot_legacy/src \
   source /opt/ros/"$ROS_DISTRO"/setup.bash \
-  && /mowbot_legacy/build_and_clean.sh ${CCACHE_DIR} /opt/mowbot_legacy
+  && /mowbot/build_and_clean.sh ${CCACHE_DIR} /opt/ros/${ROS_DISTRO}
 
 ##########################################################################
 
