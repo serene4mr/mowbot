@@ -6,7 +6,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG ROS_DISTRO
 
 # Copy files
-COPY setup-dev-env.sh ansible-galaxy-requirements.yaml amd64.env arm64.env /mowbot/
+COPY setup-dev-env.sh ansible-galaxy-requirements.yaml amd64.env arm64.env py_requirements.txt /mowbot/
 RUN chmod +x /mowbot/setup-dev-env.sh
 COPY ansible/ /mowbot/ansible/
 COPY docker/scripts/cleanup_apt.sh /mowbot/cleanup_apt.sh
@@ -23,6 +23,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   gosu \
   ssh \
   apt-utils \
+  libqt5serialport5-dev \
   && /mowbot/cleanup_apt.sh \
   && mkdir -p ~/.ssh \
   && ssh-keyscan github.com >> ~/.ssh/known_hosts
@@ -34,6 +35,33 @@ RUN --mount=type=ssh \
   && pip uninstall -y ansible ansible-core \
   && /mowbot/cleanup_apt.sh \
   && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" > /etc/bash.bashrc
+
+##########################################################################
+# Generate install package lists
+# Copy source and Generate install package lists
+COPY src /mowbot/src
+RUN /mowbot/resolve_rosdep_keys.sh /mowbot/src ${ROS_DISTRO} \
+  > /tmp/rosdep-main-depend-packages.txt \
+  && cat /tmp/rosdep-main-depend-packages.txt
+
+# Install rosdep dependencies
+# hadolint ignore=SC2002
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  apt-get update \
+  && cat /tmp/rosdep-main-depend-packages.txt| xargs apt-get install -y --no-install-recommends \
+  && /mowbot/cleanup_apt.sh
+
+# Install Python packages
+RUN pip install --no-cache-dir -r /mowbot/py_requirements.txt
+
+# hadolint ignore=SC1091
+RUN --mount=type=cache,target=${CCACHE_DIR} \
+    # --mount=type=bind,source=/src,target=/mowbot_legacy/src \
+  source /opt/ros/"$ROS_DISTRO"/setup.bash \
+  && /mowbot_legacy/build_and_clean.sh ${CCACHE_DIR} /opt/mowbot_legacy
+
+##########################################################################
+
 
 # Create entrypoint
 COPY docker/etc/ros_entrypoint.sh /ros_entrypoint.sh

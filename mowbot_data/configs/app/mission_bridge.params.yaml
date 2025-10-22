@@ -63,9 +63,9 @@ mission_bridge_node:
     # Diagnostics Settings
     # ========================================================================
     diagnostics_topic: "/diagnostics"
-    manual_mode_key: "platform_control_mode"
-    manual_mode_value: "MANUAL"
-    auto_mode_value: "AUTO"
+    driving_mode_key: "driving_mode"
+    manual_mode_value: "1"
+    auto_mode_value: "0"
     
     # ========================================================================
     # Order Processing

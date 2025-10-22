@@ -15,4 +15,7 @@ repositories:
     version: main
 
   # sensor_component
-  #sensor_component/...
+  sensor_component:
+    type: git
+    url: git@github.com:serene4mr/mowbot_ext.git
+    version: main

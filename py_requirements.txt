@@ -1,0 +1,20 @@
+# VDA5050 client from specific repository
+git+https://github.com/zeki-aitech/vda5050_client.git
+
+# MQTT communication
+paho-mqtt>=1.6.1
+
+# Data Validation (dependency of vda5050-client)
+pydantic>=2.0.0,<3.0.0
+jsonschema>=4.0.0,<5.0.0
+
+# Sensor Hardware Dependencies
+numpy>=1.21.0
+pyserial>=3.5
+
+# Testing Dependencies
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.10.0
+pytest-cov>=4.0.0
+

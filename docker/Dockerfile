@@ -6,7 +6,7 @@ FROM $MOWBOT_BASE_IMAGE AS rosdep-depend
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG ROS_DISTRO
 
-COPY setup-dev-env.sh ansible-galaxy-requirements.yaml amd64.env arm64.env /mowbot/
+COPY setup-dev-env.sh ansible-galaxy-requirements.yaml amd64.env arm64.env py_requirements.txt /mowbot/
 COPY ansible/ /mowbot/ansible/
 COPY docker/scripts/cleanup_apt.sh /mowbot/cleanup_apt.sh
 RUN chmod +x /mowbot/cleanup_apt.sh
