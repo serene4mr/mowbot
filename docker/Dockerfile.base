@@ -7,7 +7,7 @@ ARG ROS_DISTRO
 ENV CCACHE_DIR="/root/.ccache"
 
 # Copy files
-COPY setup-dev-env.sh ansible-galaxy-requirements.yaml amd64.env arm64.env py_requirements.txt /mowbot/
+COPY setup-dev-env.sh ansible-galaxy-requirements.yaml amd64.env arm64.env /mowbot/
 RUN chmod +x /mowbot/setup-dev-env.sh
 COPY ansible/ /mowbot/ansible/
 COPY docker/scripts/cleanup_apt.sh /mowbot/cleanup_apt.sh
