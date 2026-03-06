@@ -1,13 +1,60 @@
 - name: Install additional dependencies
   become: true
   ansible.builtin.apt:
-    name: software-properties-common
+    name:
+      - software-properties-common
+      - gpg
     state: present
 
-- name: Add Kisak Mesa PPA
+- name: Ensure keyrings directory exists
+  become: true
+  ansible.builtin.file:
+    path: /usr/share/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Fetch Kisak Mesa PPA key (avoids legacy trusted.gpg)
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ kisak_mesa_key_url }}"
+    dest: /tmp/kisak-mesa-ppa.asc
+    mode: "0644"
+  register: kisak_key_download
+
+- name: Install Kisak Mesa PPA key into keyring
+  become: true
+  ansible.builtin.shell: |
+    gpg --dearmor -o {{ kisak_mesa_keyring }} < /tmp/kisak-mesa-ppa.asc
+  args:
+    creates: "{{ kisak_mesa_keyring }}"
+
+- name: Remove Kisak Mesa key temp file
+  become: true
+  ansible.builtin.file:
+    path: /tmp/kisak-mesa-ppa.asc
+    state: absent
+
+- name: Remove legacy Kisak Mesa PPA if present (migrate to keyring)
   become: true
   ansible.builtin.apt_repository:
     repo: ppa:kisak/kisak-mesa
+    state: absent
+  ignore_errors: true
+
+- name: Remove Kisak Mesa key from legacy apt keyring if present
+  become: true
+  ansible.builtin.command: apt-key del 90935439
+  register: _legacy_key_removed
+  failed_when: false
+  changed_when: _legacy_key_removed.rc == 0
+
+- name: Add Kisak Mesa PPA (signed-by keyring)
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by={{ kisak_mesa_keyring }}] https://ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu {{ ansible_distribution_release }} main"
+    state: present
+    filename: kisak-mesa-ppa
+    update_cache: true
 
 - name: Install Mesa libraries
   become: true

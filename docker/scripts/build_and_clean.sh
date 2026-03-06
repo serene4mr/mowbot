@@ -15,7 +15,7 @@ function build_and_clean() {
             --mixin release compile-commands ccache \
             $colcon_build_args &&
         du -sh "$ccache_dir" && ccache -s &&
-        rm -rf /autoware/build /autoware/log
+        rm -rf /mowbot/build /mowbot/log
 }
 
 build_and_clean "$@"

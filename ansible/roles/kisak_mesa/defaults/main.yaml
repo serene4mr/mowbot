@@ -1,1 +1,5 @@
-
+---
+# Kisak Mesa PPA (key in keyring to avoid legacy trusted.gpg deprecation)
+# Key fingerprint: EB8B81E14DA65431D7504EA8F63F0F2B90935439
+kisak_mesa_keyring: "/usr/share/keyrings/kisak-mesa-ppa.gpg"
+kisak_mesa_key_url: "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xEB8B81E14DA65431D7504EA8F63F0F2B90935439"
