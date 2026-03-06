@@ -1,0 +1,5 @@
+---
+# Qt5 SerialPort development package (e.g. for witmotion IMU UART tools)
+qt5_serialport_package: libqt5serialport5-dev
+qt5_serialport_state: latest
+qt5_serialport_verify_installation: true

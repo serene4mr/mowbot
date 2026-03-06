@@ -50,6 +50,11 @@ This directory contains Ansible roles for setting up the mowbot development envi
 - **Features**: ROS tools, system tools, Python tools, code quality tools
 - **Documentation**: [dev_tools/README.md](dev_tools/README.md) (155 lines)
 
+#### 📟 **qt5_serialport**
+- **Purpose**: Install Qt5 SerialPort development package for serial/UART tools (e.g. witmotion IMU)
+- **Features**: Configurable package, optional verification
+- **Documentation**: [qt5_serialport/README.md](qt5_serialport/README.md)
+
 ### Artifacts and Assets
 
 #### 📦 **artifacts**
@@ -63,6 +68,7 @@ This directory contains Ansible roles for setting up the mowbot development envi
 - `build_tools` - Required for compilation
 - `geographiclib` - Required for geospatial calculations
 - `rmw_implementation` - Required for ROS 2 communication
+- `qt5_serialport` - Qt5 SerialPort dev package (runtime and devel, e.g. witmotion IMU)
 
 ### **GPU Acceleration Roles** (Conditional)
 - `cuda` - NVIDIA CUDA Toolkit
@@ -94,6 +100,7 @@ This directory contains Ansible roles for setting up the mowbot development envi
     - build_tools
     - geographiclib
     - rmw_implementation
+    - qt5_serialport
     - cuda
     - tensorrt
     - nvidia_container_toolkit
@@ -109,6 +116,7 @@ This directory contains Ansible roles for setting up the mowbot development envi
     - build_tools
     - geographiclib
     - rmw_implementation
+    - qt5_serialport
     - nvidia_container_toolkit
     - kisak_mesa
 ```

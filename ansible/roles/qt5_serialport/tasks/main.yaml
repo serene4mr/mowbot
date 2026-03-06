@@ -1,0 +1,24 @@
+---
+- name: Install Qt5 SerialPort development package
+  become: true
+  ansible.builtin.apt:
+    name: "{{ qt5_serialport_package }}"
+    state: "{{ qt5_serialport_state }}"
+    update_cache: true
+
+- name: Verify Qt5 SerialPort installation
+  ansible.builtin.command: dpkg -l {{ qt5_serialport_package }}
+  register: qt5_serialport_check
+  changed_when: false
+  failed_when: false
+  when: qt5_serialport_verify_installation | bool
+
+- name: Display Qt5 SerialPort installation status
+  ansible.builtin.debug:
+    msg: "✅ Qt5 SerialPort development package installed successfully"
+  when: qt5_serialport_verify_installation | bool and qt5_serialport_check.rc == 0
+
+- name: Display Qt5 SerialPort installation warning
+  ansible.builtin.debug:
+    msg: "⚠️ Warning: Qt5 SerialPort installation may have failed. Manual verification recommended."
+  when: qt5_serialport_verify_installation | bool and qt5_serialport_check.rc != 0

@@ -48,6 +48,7 @@
     - role: mowbot.dev_env.build_tools
     - role: mowbot.dev_env.geographiclib
     - role: mowbot.dev_env.rmw_implementation
+    - role: mowbot.dev_env.qt5_serialport
 
     # GPU acceleration (conditional)
     - role: mowbot.dev_env.cuda
@@ -62,7 +63,7 @@
     # Development tools (conditional)
     - role: mowbot.dev_env.dev_tools
       when: install_devel == 'y'
-  
+
     # Artifacts and assets (conditional)
     - role: mowbot.dev_env.artifacts
       when: prompt_download_artifacts == 'y'
