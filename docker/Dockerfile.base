@@ -65,7 +65,7 @@ RUN /mowbot/resolve_pip_requirements.sh src > /tmp/pip_requirements.txt \
 # hadolint ignore=SC1091
 RUN --mount=type=cache,target=${CCACHE_DIR} \
   source /opt/ros/"$ROS_DISTRO"/setup.bash \
-  && /mowbot/build_and_clean.sh ${CCACHE_DIR} /opt/ros/${ROS_DISTRO}
+  && /mowbot/build_and_clean.sh ${CCACHE_DIR} /opt/mowbot
 
 ##########################################################################
 

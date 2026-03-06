@@ -12,6 +12,14 @@
     update_cache: false
   register: rmw_installation
 
+- name: Install CycloneDDS library for rmw_cyclonedds_cpp
+  become: true
+  ansible.builtin.apt:
+    name: libddsc0
+    state: latest
+    update_cache: false
+  when: rmw_implementation == 'rmw_cyclonedds_cpp'
+
 - name: Set default RMW implementation in .bashrc
   ansible.builtin.lineinfile:
     dest: ~/.bashrc
