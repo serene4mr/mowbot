@@ -1,14 +1,21 @@
 {
-    // "name": "mowbot_dev_cuda",
-    // "build": {
-    //     "dockerfile": "../Dockerfile",
-    //     "context": "..",
-    //     "options": [
-    //         "-t", "mowbot_dev_cuda",
-    //         "--build-arg", "BASE_IMAGE=ghcr.io/serene4mr/mowbot:main-dev-cuda-latest"
-    //     ]
-    // },
-    "image": "ghcr.io/serene4mr/mowbot:main-dev-cuda-latest",
+    "name": "mowbot_dev_cuda",
+    // Base image is from GitHub Container Registry. Log in first: docker login ghcr.io
+    "build": {
+        "dockerfile": "../Dockerfile",
+        "context": "..",
+        "args": {
+            "USERNAME": "${localEnv:USER}"
+        },
+        "options": [
+            "-t", "mowbot_dev_cuda",
+            "--pull=false",
+            "--build-arg", "BASE_IMAGE=ghcr.io/serene4mr/mowbot:main-dev-cuda-latest"
+        ]
+    },
+    "remoteUser": "${localEnv:USER}",
+    "updateRemoteUserUID": true,
+    // "image": "ghcr.io/serene4mr/mowbot:main-dev-cuda-latest",
     "runArgs": [
         "--name", "mowbot_dev_cuda",
         "--net", "host",
@@ -26,7 +33,6 @@
         "vscode": {
             "extensions": [
                 "ms-python.python",
-                "ms-vscode.cpptools-extension-pack",
                 "ms-vscode.cmake-tools"
             ]
         }
