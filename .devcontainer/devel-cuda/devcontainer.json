@@ -27,6 +27,9 @@
         "-e", "NVIDIA_VISIBLE_DEVICES=all",
         "-e", "NVIDIA_DRIVER_CAPABILITIES=all"
     ],
+    "containerEnv": {
+        "DISPLAY": "${localEnv:DISPLAY}"
+    },
     "customizations": {
         "vscode": {
             "extensions": [
