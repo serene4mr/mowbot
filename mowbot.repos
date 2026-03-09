@@ -19,3 +19,9 @@ repositories:
     type: git
     url: git@github.com:serene4mr/mowbot_ext.git
     version: main
+
+  # data
+  mowbot_data:
+    type: git
+    url: git@github.com:serene4mr/mowbot_data.git
+    version: main
