@@ -1,0 +1,51 @@
+{
+    "name": "mowbot_dev_cuda_jetson",
+    "build": {
+        "dockerfile": "../Dockerfile",
+        "context": "..",
+        "args": {
+            "USERNAME": "${localEnv:USER}"
+        },
+        "options": [
+            "-t", "mowbot_dev_cuda",
+            "--pull=false",
+            "--build-arg", "BASE_IMAGE=ghcr.io/serene4mr/mowbot:main-dev-cuda-latest"
+        ]
+    },
+    "remoteUser": "${localEnv:USER}",
+    "updateRemoteUserUID": false,
+    "overrideCommand": true, 
+    "runArgs": [
+        "--name", "mowbot_dev_cuda",
+        "--net", "host",
+        "--ipc", "host",
+        "--pid", "host",
+        "--privileged",
+        // "--gpus", "all",
+        "--runtime=nvidia",
+        "-v", "/dev:/dev",
+        "-v", "/tmp/.X11-unix:/tmp/.X11-unix",
+        "-e", "DISPLAY",
+        "-e", "NVIDIA_VISIBLE_DEVICES=all",
+        "-e", "NVIDIA_DRIVER_CAPABILITIES=all"
+    ],
+    "containerEnv": {
+        "DISPLAY": "${localEnv:DISPLAY}"
+    },
+    "remoteEnv": {
+        // BUG FIXED: remoteEnv is applied *after* the container is fully running and 
+        // the VS Code Server connects to it.
+        // Because the container is already running, VS Code can successfully look up the 
+        // existing containerEnv (the default Linux paths) and append your CUDA paths to them safely.
+        "PATH": "/usr/local/cuda/bin:${containerEnv:PATH}",
+        "LD_LIBRARY_PATH": "/usr/local/cuda/lib64:${containerEnv:LD_LIBRARY_PATH}"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-vscode.cmake-tools"
+            ]
+        }
+    }
+}
