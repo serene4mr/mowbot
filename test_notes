@@ -5,8 +5,51 @@ ros2 launch mowbot_sensor_kit_t2_launch sensing.launch.py gnss:=false imu:=false
 export ROS_DOMAIN_ID=0
 ros2 launch mowbot_launch mowbot.launch.py \
   robot_id:=mowbot_001 \
-  robot_model:=mowbot_robot_modelv3 \
+  robot_model:=mowbot_model_t2 \
   sensor_model:=mowbot_sensor_kit_t2 \
   data_path:=/workspaces/mowbot/src/mowbot_data \
-  launch_robot:=false launch_sensing:=true launch_sensing_driver:=true \
-  launch_localization:=true launch_nav2:=true launch_app:=true
+  launch_robot:=true launch_sensing:=true launch_sensing_driver:=true \
+  launch_localization:=false launch_nav2:=false launch_app:=false
+
+
+
+# robot and sensor only
+export ROS_DOMAIN_ID=0
+ros2 launch mowbot_launch mowbot.launch.py \
+  robot_id:=mowbot_001 \
+  robot_model:=mowbot_model_t2 \
+  sensor_model:=mowbot_sensor_kit_t2 \
+  data_path:=/workspaces/mowbot/src/mowbot_data \
+  launch_robot:=true launch_sensing:=true launch_sensing_driver:=true \
+  launch_localization:=false launch_nav2:=false launch_app:=false
+
+
+# localization only 
+export ROS_DOMAIN_ID=0
+ros2 launch mowbot_launch mowbot.launch.py \
+  robot_id:=mowbot_001 \
+  robot_model:=mowbot_model_t2 \
+  sensor_model:=mowbot_sensor_kit_t2 \
+  data_path:=/workspaces/mowbot/src/mowbot_data \
+  launch_robot:=false launch_sensing:=false launch_sensing_driver:=false \
+  launch_localization:=true launch_nav2:=true launch_app:=false
+
+# navigation only
+export ROS_DOMAIN_ID=0
+ros2 launch mowbot_launch mowbot.launch.py \
+  robot_id:=mowbot_001 \
+  robot_model:=mowbot_model_t2 \
+  sensor_model:=mowbot_sensor_kit_t2 \
+  data_path:=/workspaces/mowbot/src/mowbot_data \
+  launch_robot:=false launch_sensing:=false launch_sensing_driver:=false \
+  launch_localization:=false launch_nav2:=true launch_app:=false
+
+# app only
+export ROS_DOMAIN_ID=0
+ros2 launch mowbot_launch mowbot.launch.py \
+  robot_id:=mowbot_001 \
+  robot_model:=mowbot_model_t2 \
+  sensor_model:=mowbot_sensor_kit_t2 \
+  data_path:=/workspaces/mowbot/src/mowbot_data \
+  launch_robot:=false launch_sensing:=false launch_sensing_driver:=false \
+  launch_localization:=false launch_nav2:=false launch_app:=true
