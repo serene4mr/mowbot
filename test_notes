@@ -1,5 +1,5 @@
-ros2 launch mowbot_sensor_kit_t2_launch sensing.launch.py gnss:=false imu:=false ntrip:=true laser:=false data_path:=/workspaces/mowbot/src/mowbot_data
-
+ros2 launch mowbot_sensor_kit_t2_launch sensing.launch.py gnss:=false imu:=false ntrip:=false laser:=true data_path:=/workspaces/mowbot/src/mowbot_data
+ros2 launch mowbot_sensor_kit_t2_launch sensing.launch.py gnss:=false imu:=true ntrip:=false laser:=false data_path:=/workspaces/mowbot/src/mowbot_data
 
 
 export ROS_DOMAIN_ID=0
