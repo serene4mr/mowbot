@@ -9,3 +9,5 @@
 
 # Environment files (robot instance config)
 /mowbot_data
+
+/rosbag
