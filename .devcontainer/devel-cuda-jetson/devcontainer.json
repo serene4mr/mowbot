@@ -26,6 +26,7 @@
         "-v", "/dev:/dev",
         "-v", "/tmp/.X11-unix:/tmp/.X11-unix",
         "-v", "${localEnv:HOME}/mowbot_data:${containerWorkspaceFolder}/src/mowbot_data",
+        // "-v", "${localEnv:HOME}/.gitconfig:/home/${localEnv:USER}/.gitconfig:ro",
         "-e", "DISPLAY",
         "-e", "NVIDIA_VISIBLE_DEVICES=all",
         "-e", "NVIDIA_DRIVER_CAPABILITIES=all"
