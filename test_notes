@@ -39,7 +39,7 @@ ros2 launch mowbot_launch mowbot.launch.py \
   sensor_model:=mowbot_sensor_kit_t2 \
   data_path:=/workspaces/mowbot/src/mowbot_data \
   launch_robot:=false launch_sensing:=false launch_sensing_driver:=false \
-  launch_localization:=true launch_nav2:=true launch_app:=false
+  launch_localization:=true launch_nav2:=false launch_app:=false
 
 # navigation only
 export ROS_DOMAIN_ID=0
@@ -60,3 +60,10 @@ ros2 launch mowbot_launch mowbot.launch.py \
   data_path:=/workspaces/mowbot/src/mowbot_data \
   launch_robot:=false launch_sensing:=false launch_sensing_driver:=false \
   launch_localization:=false launch_nav2:=false launch_app:=true
+
+ros2 bag play rosbag/rosbag2_2026_03_24-14_10_33/ --clock
+
+use_sim_tim --clock
+
+sudo apt update
+sudo apt install -y mosquitto-clients
