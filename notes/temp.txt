@@ -20,7 +20,7 @@ ros2 launch nav2_bringup rviz_launch.py
 # Terminal 1 - Robot 1 (Domain 0)
 export ROS_DOMAIN_ID=0
 ros2 launch mowbot_launch gzsim_bringup.launch.py \
-  robot_id:=mowbot_001 x:=0 y:=0 data_path:=/workspaces/mowbot/src/mowbot_data
+  robot_id:=mowbot_001 x:=-15.85 y:=5.64 yaw:=0.9 data_path:=/workspaces/mowbot/src/mowbot_data
 
 # Terminal 2 - Robot 1 Stack (Domain 0)
 export ROS_DOMAIN_ID=0
