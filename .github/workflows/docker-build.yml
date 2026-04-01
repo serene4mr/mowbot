@@ -223,16 +223,16 @@ jobs:
           cd docker
           TAG=${{ steps.tags.outputs.tag }}
 
-          ./build.sh --target main-dev-cuda --platform linux/amd64 --version $VERSION
+          ./build.sh --target main-cuda --platform linux/amd64 --version $VERSION
           
-          docker push ghcr.io/serene4mr/mowbot:main-dev-cuda-$VERSION
+          docker push ghcr.io/serene4mr/mowbot:main-cuda-$VERSION
           
-          docker tag ghcr.io/serene4mr/mowbot:main-dev-cuda-$VERSION ghcr.io/serene4mr/mowbot:main-dev-cuda-${TAG}
-          docker push ghcr.io/serene4mr/mowbot:main-dev-cuda-${TAG}
+          docker tag ghcr.io/serene4mr/mowbot:main-cuda-$VERSION ghcr.io/serene4mr/mowbot:main-cuda-${TAG}
+          docker push ghcr.io/serene4mr/mowbot:main-cuda-${TAG}
 
           if [ "${{ steps.tags.outputs.push_latest }}" = "true" ]; then
-            docker tag ghcr.io/serene4mr/mowbot:main-dev-cuda-$VERSION ghcr.io/serene4mr/mowbot:main-dev-cuda
-            docker push ghcr.io/serene4mr/mowbot:main-dev-cuda
+            docker tag ghcr.io/serene4mr/mowbot:main-cuda-$VERSION ghcr.io/serene4mr/mowbot:main-cuda
+            docker push ghcr.io/serene4mr/mowbot:main-cuda
           fi
 
       - name: Final cleanup
