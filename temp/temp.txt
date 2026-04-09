@@ -57,9 +57,10 @@ ros2 launch mowbot_launch mowbot.launch.py \
 
 -------------------------
 
-export ROS_DOMAIN_ID=0
+export ROS_DOMAIN_ID=100
 export MB_ROBOT_ID=mowbot_001
 export MB_DATA_PATH=/workspaces/mowbot/src/mowbot_data
+source ./install/setup.bash
 ros2 launch mowbot_launch gzsim_bringup.launch.py \
   x:=-15.85 y:=5.64 yaw:=0.9 \
   robot_id:=$MB_ROBOT_ID \
@@ -67,9 +68,10 @@ ros2 launch mowbot_launch gzsim_bringup.launch.py \
 
 
 
-export ROS_DOMAIN_ID=0 
+export ROS_DOMAIN_ID=100 
 export MB_ROBOT_ID=mowbot_001 
 export MB_DATA_PATH=/workspaces/mowbot/src/mowbot_data 
+source ./install/setup.bash
 ros2 launch mowbot_launch mowbot.launch.py \
   robot_id:=$MB_ROBOT_ID \
   data_path:=$MB_DATA_PATH \
