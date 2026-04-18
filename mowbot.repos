@@ -20,6 +20,11 @@ repositories:
     url: git@github.com:serene4mr/mowbot_ext.git
     version: main
 
+  sensor_component/realsense-ros:
+    type: git
+    url: git@github.com:serene4mr/realsense-ros.git
+    version: main
+
   # data
   # mowbot_data:
   #   type: git
