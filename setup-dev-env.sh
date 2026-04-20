@@ -18,9 +18,9 @@ print_help() {
     echo "  --no-cuda-drivers Disable installation of 'cuda-drivers' in the role 'cuda'"
     echo "  --runtime       Disable installation dev package of role 'cuda' and 'tensorrt'"
     echo "  --data-dir      Set data directory (default: $HOME/mowbot_data)"
-    echo "  --download-artifacts"
-    echo "                  Download artifacts"
-    echo "  --module        Specify the module (default: all)"
+    # echo "  --download-artifacts"
+    # echo "                  Download artifacts"
+    # echo "  --module        Specify the module (default: all)"
     echo ""
 }
 
@@ -79,8 +79,20 @@ if [ ${#args[@]} -ge 1 ]; then
     target_playbook="mowbot.dev_env.${args[0]}"
 fi
 
+# Load env defaults
+source "$SCRIPT_DIR/amd64.env"
+if [ "$(uname -m)" = "aarch64" ]; then
+    source "$SCRIPT_DIR/arm64.env"
+fi
+
 # Initialize ansible args
 ansible_args=()
+
+# Add env defaults as ansible variables
+# shellcheck disable=SC2013
+for env_name in $(sed -e "s/^\s*//" -e "/^#/d" -e "s/=.*//" <amd64.env); do
+    ansible_args+=("--extra-vars" "${env_name}=${!env_name}")
+done
 
 # Confirm to start installation
 if [ "$option_yes" = "true" ]; then
@@ -110,11 +122,6 @@ elif [ "$option_yes" = "true" ]; then
     ansible_args+=("--extra-vars" "prompt_install_nvidia=y")
 fi
 
-# Check installation of CUDA Drivers
-if [ "$option_no_cuda_drivers" = "true" ]; then
-    ansible_args+=("--extra-vars" "cuda_install_drivers=false")
-fi
-
 # Check installation of dev package
 if [ "$option_runtime" = "true" ]; then
     ansible_args+=("--extra-vars" "ros2_installation_type=ros-base") # ROS installation type, default "desktop"
@@ -141,17 +148,11 @@ if [ "$option_module" != "" ]; then
     ansible_args+=("--extra-vars" "module=$option_module")
 fi
 
-# Load env
-source "$SCRIPT_DIR/amd64.env"
-if [ "$(uname -m)" = "aarch64" ]; then
-    source "$SCRIPT_DIR/arm64.env"
+# Check installation of CUDA Drivers
+# NOTE: Keep this after env var loading so CLI flags override .env defaults.
+if [ "$option_no_cuda_drivers" = "true" ]; then
+    ansible_args+=("--extra-vars" "cuda_install_drivers=false")
 fi
-
-# Add env args
-# shellcheck disable=SC2013
-for env_name in $(sed -e "s/^\s*//" -e "/^#/d" -e "s/=.*//" <amd64.env); do
-    ansible_args+=("--extra-vars" "${env_name}=${!env_name}")
-done
 
 # Install sudo
 if ! (command -v sudo >/dev/null 2>&1); then
