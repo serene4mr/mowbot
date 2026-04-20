@@ -86,3 +86,30 @@ docker run -it --rm \
   --name ros2-gui \
   osrf/ros:humble-desktop \
   /bin/bash -c "source /opt/ros/humble/setup.bash && rviz2"
+
+
+ros2 run yolo_inference_ros yolo_inference_node --ros-args \
+    -p enable_debug:=True \
+    -p model:=/workspaces/mowbot/yolov8n.pt \
+    -p fuse_model:=True \
+    -p enable_3d:=True \
+    -p enable_tracker:=True \
+    -p use_sim_time:=True \
+    -r /camera/image_raw:=/camera/camera/color/image_raw \
+    -r /camera/depth/image_raw:=/camera/camera/aligned_depth_to_color/image_raw \
+    -r /camera/depth/camera_info:=/camera/camera/aligned_depth_to_color/camera_info \
+    -r detections_2d:=/yolo/detections_2d
+
+
+ros2 run yolo_inference_ros yolo_inference_node --ros-args \
+    -p enable_debug:=True \
+    -p model:=/workspaces/mowbot/yolov8n.engine \
+    -p fuse_model:=True \
+    -p enable_3d:=True \
+    -p enable_tracker:=True \
+    -p use_sim_time:=True \
+    -r /camera/image_raw:=/camera/camera/color/image_raw \
+    -r /camera/depth/image_raw:=/camera/camera/aligned_depth_to_color/image_raw \
+    -r /camera/depth/camera_info:=/camera/camera/aligned_depth_to_color/camera_info \
+    -r detections_2d:=/yolo/detections_2d
+

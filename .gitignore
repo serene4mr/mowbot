@@ -11,3 +11,7 @@
 /mowbot_data
 
 /rosbag
+
+
+*.pt
+*.engine
