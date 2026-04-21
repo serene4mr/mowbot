@@ -80,6 +80,14 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Set up CUDA runtime environment
 # hadolint ignore=SC2002
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
+  libcufft10 \
+  && /mowbot/cleanup_apt.sh \
+  && true
+
+# Set up CUDA runtime environment
 RUN --mount=type=ssh \
   ./setup-dev-env.sh -y --module base --no-cuda-drivers --runtime \
   && pip uninstall -y ansible ansible-core \
