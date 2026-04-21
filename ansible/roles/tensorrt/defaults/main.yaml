@@ -1,7 +1,7 @@
 ---
 # TensorRT and cuDNN versions
-tensorrt_version: "8.6.1.6"
-cudnn_version: "8.9.7.29"
+tensorrt_version: "8.6.0.12-1+cuda11.8"
+cudnn_version: "8.6.0.163-1+cuda11.8"
 
 # Installation options (simplified)
 tensorrt_hold_packages: true  # Prevent automatic upgrades

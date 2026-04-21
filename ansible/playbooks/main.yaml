@@ -29,9 +29,9 @@
         msg:
           - "ROS 2 Distribution: {{ rosdistro | default('humble') }}"
           - "RMW Implementation: {{ rmw_implementation | default('rmw_cyclonedds_cpp') }}"
-          - "CUDA Version: {{ cuda_version | default('12.4') }}"
-          - "cuDNN Version: {{ cudnn_version | default('8.9.7.29') }}"
-          - "TensorRT Version: {{ tensorrt_version | default('8.6.1.6') }}"
+          - "CUDA Version: {{ cuda_version | default('11.8') }}"
+          - "cuDNN Version: {{ cudnn_version | default('8.6.0.163-1+cuda11.8') }}"
+          - "TensorRT Version: {{ tensorrt_version | default('8.6.0.12-1+cuda11.8') }}"
           - "Install NVIDIA: {{ prompt_install_nvidia | default('N') }}"
           - "Download Artifacts: {{ prompt_download_artifacts | default('N') }}"
           - "Install Dev Tools: {{ install_devel | default('y') }}"
