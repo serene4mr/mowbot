@@ -11,17 +11,28 @@
   become: true
   ansible.builtin.apt:
     name:
-      - "libcudnn8={{ cudnn_version }}"
-      - "libnvinfer8={{ tensorrt_version }}"
-      - "libnvinfer-plugin8={{ tensorrt_version }}"
-      - "libnvinfer-vc-plugin8={{ tensorrt_version }}"
-      - "libnvinfer-lean8={{ tensorrt_version }}"
-      - "libnvinfer-dispatch8={{ tensorrt_version }}"
-      - "libnvonnxparsers8={{ tensorrt_version }}"
-      - "libnvparsers8={{ tensorrt_version }}"
-      - "python3-libnvinfer={{ tensorrt_version }}"
-      - "python3-libnvinfer-lean={{ tensorrt_version }}"
-      - "python3-libnvinfer-dispatch={{ tensorrt_version }}"
+      # - "libcudnn8={{ cudnn_version }}"
+      # - "libnvinfer8={{ tensorrt_version }}"
+      # - "libnvinfer-plugin8={{ tensorrt_version }}"
+      # - "libnvinfer-vc-plugin8={{ tensorrt_version }}"
+      # - "libnvinfer-lean8={{ tensorrt_version }}"
+      # - "libnvinfer-dispatch8={{ tensorrt_version }}"
+      # - "libnvonnxparsers8={{ tensorrt_version }}"
+      # - "libnvparsers8={{ tensorrt_version }}"
+      # - "python3-libnvinfer={{ tensorrt_version }}"
+      # - "python3-libnvinfer-lean={{ tensorrt_version }}"
+      # - "python3-libnvinfer-dispatch={{ tensorrt_version }}"
+      - "{{ 'libcudnn8=' + cudnn_version if ansible_architecture == 'x86_64' else 'libcudnn8' }}"
+      - "{{ 'libnvinfer8=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer8' }}"
+      - "{{ 'libnvinfer-plugin8=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-plugin8' }}"
+      - "{{ 'libnvinfer-vc-plugin8=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-vc-plugin8' }}"
+      - "{{ 'libnvinfer-lean8=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-lean8' }}"
+      - "{{ 'libnvinfer-dispatch8=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-dispatch8' }}"
+      - "{{ 'libnvonnxparsers8=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvonnxparsers8' }}"
+      - "{{ 'libnvparsers8=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvparsers8' }}"
+      - "{{ 'python3-libnvinfer=' + tensorrt_version if ansible_architecture == 'x86_64' else 'python3-libnvinfer' }}"
+      - "{{ 'python3-libnvinfer-lean=' + tensorrt_version if ansible_architecture == 'x86_64' else 'python3-libnvinfer-lean' }}"
+      - "{{ 'python3-libnvinfer-dispatch=' + tensorrt_version if ansible_architecture == 'x86_64' else 'python3-libnvinfer-dispatch' }}"
     allow_change_held_packages: true
     allow_downgrade: true
     update_cache: true
@@ -30,12 +41,18 @@
   become: true
   ansible.builtin.apt:
     name:
-      - "libcudnn8-dev={{ cudnn_version }}"
-      - "libnvinfer-dev={{ tensorrt_version }}"
-      - "libnvinfer-plugin-dev={{ tensorrt_version }}"
-      - "libnvinfer-headers-dev={{ tensorrt_version }}"
-      - "libnvinfer-headers-plugin-dev={{ tensorrt_version }}"
-      - "libnvonnxparsers-dev={{ tensorrt_version }}"
+      # - "libcudnn8-dev={{ cudnn_version }}"
+      # - "libnvinfer-dev={{ tensorrt_version }}"
+      # - "libnvinfer-plugin-dev={{ tensorrt_version }}"
+      # - "libnvinfer-headers-dev={{ tensorrt_version }}"
+      # - "libnvinfer-headers-plugin-dev={{ tensorrt_version }}"
+      # - "libnvonnxparsers-dev={{ tensorrt_version }}"
+      - "{{ 'libcudnn8-dev=' + cudnn_version if ansible_architecture == 'x86_64' else 'libcudnn8-dev' }}"
+      - "{{ 'libnvinfer-dev=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-dev' }}"
+      - "{{ 'libnvinfer-plugin-dev=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-plugin-dev' }}"
+      - "{{ 'libnvinfer-headers-dev=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-headers-dev' }}"
+      - "{{ 'libnvinfer-headers-plugin-dev=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-headers-plugin-dev' }}"
+      - "{{ 'libnvonnxparsers-dev=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvonnxparsers-dev' }}"
     allow_change_held_packages: true
     allow_downgrade: true
     update_cache: false
