@@ -1,38 +1,11 @@
-- name: Remove pip-installed TensorRT packages that shadow apt bindings
-  become: true
-  ansible.builtin.shell: |
-    python3 -m pip uninstall -y tensorrt tensorrt-cu11 tensorrt-cu12 tensorrt-cu13 || true
-    rm -rf /usr/local/lib/python3.10/dist-packages/tensorrt*
-  args:
-    executable: /bin/bash
-  changed_when: false
-
 - name: Install cuDNN and TensorRT runtime packages
   become: true
   ansible.builtin.apt:
     name:
-      # - "libcudnn8={{ cudnn_version }}"
-      # - "libnvinfer8={{ tensorrt_version }}"
-      # - "libnvinfer-plugin8={{ tensorrt_version }}"
-      # - "libnvinfer-vc-plugin8={{ tensorrt_version }}"
-      # - "libnvinfer-lean8={{ tensorrt_version }}"
-      # - "libnvinfer-dispatch8={{ tensorrt_version }}"
-      # - "libnvonnxparsers8={{ tensorrt_version }}"
-      # - "libnvparsers8={{ tensorrt_version }}"
-      # - "python3-libnvinfer={{ tensorrt_version }}"
-      # - "python3-libnvinfer-lean={{ tensorrt_version }}"
-      # - "python3-libnvinfer-dispatch={{ tensorrt_version }}"
-      - "{{ 'libcudnn8=' + cudnn_version if ansible_architecture == 'x86_64' else 'libcudnn8' }}"
-      - "{{ 'libnvinfer8=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer8' }}"
-      - "{{ 'libnvinfer-plugin8=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-plugin8' }}"
-      - "{{ 'libnvinfer-vc-plugin8=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-vc-plugin8' }}"
-      - "{{ 'libnvinfer-lean8=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-lean8' }}"
-      - "{{ 'libnvinfer-dispatch8=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-dispatch8' }}"
-      - "{{ 'libnvonnxparsers8=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvonnxparsers8' }}"
-      - "{{ 'libnvparsers8=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvparsers8' }}"
-      - "{{ 'python3-libnvinfer=' + tensorrt_version if ansible_architecture == 'x86_64' else 'python3-libnvinfer' }}"
-      - "{{ 'python3-libnvinfer-lean=' + tensorrt_version if ansible_architecture == 'x86_64' else 'python3-libnvinfer-lean' }}"
-      - "{{ 'python3-libnvinfer-dispatch=' + tensorrt_version if ansible_architecture == 'x86_64' else 'python3-libnvinfer-dispatch' }}"
+      - "libcudnn8={{ cudnn_version }}"
+      - "libnvinfer10={{ tensorrt_version }}"
+      - "libnvinfer-plugin10={{ tensorrt_version }}"
+      - "libnvonnxparsers10={{ tensorrt_version }}"
     allow_change_held_packages: true
     allow_downgrade: true
     update_cache: true
@@ -41,18 +14,12 @@
   become: true
   ansible.builtin.apt:
     name:
-      # - "libcudnn8-dev={{ cudnn_version }}"
-      # - "libnvinfer-dev={{ tensorrt_version }}"
-      # - "libnvinfer-plugin-dev={{ tensorrt_version }}"
-      # - "libnvinfer-headers-dev={{ tensorrt_version }}"
-      # - "libnvinfer-headers-plugin-dev={{ tensorrt_version }}"
-      # - "libnvonnxparsers-dev={{ tensorrt_version }}"
-      - "{{ 'libcudnn8-dev=' + cudnn_version if ansible_architecture == 'x86_64' else 'libcudnn8-dev' }}"
-      - "{{ 'libnvinfer-dev=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-dev' }}"
-      - "{{ 'libnvinfer-plugin-dev=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-plugin-dev' }}"
-      - "{{ 'libnvinfer-headers-dev=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-headers-dev' }}"
-      - "{{ 'libnvinfer-headers-plugin-dev=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvinfer-headers-plugin-dev' }}"
-      - "{{ 'libnvonnxparsers-dev=' + tensorrt_version if ansible_architecture == 'x86_64' else 'libnvonnxparsers-dev' }}"
+      - "libcudnn8-dev={{ cudnn_version }}"
+      - "libnvinfer-dev={{ tensorrt_version }}"
+      - "libnvinfer-plugin-dev={{ tensorrt_version }}"
+      - "libnvinfer-headers-dev={{ tensorrt_version }}"
+      - "libnvinfer-headers-plugin-dev={{ tensorrt_version }}"
+      - "libnvonnxparsers-dev={{ tensorrt_version }}"
     allow_change_held_packages: true
     allow_downgrade: true
     update_cache: false
@@ -66,16 +33,9 @@
     selection: hold
   with_items:
     - libcudnn8
-    - libnvinfer8
-    - libnvinfer-plugin8
-    - libnvinfer-vc-plugin8
-    - libnvinfer-lean8
-    - libnvinfer-dispatch8
-    - libnvonnxparsers8
-    - libnvparsers8
-    - python3-libnvinfer
-    - python3-libnvinfer-lean
-    - python3-libnvinfer-dispatch
+    - libnvinfer10
+    - libnvinfer-plugin10
+    - libnvonnxparsers10
   when: tensorrt_hold_packages | default(true) | bool
 
 - name: Prevent TensorRT development packages from upgrading

@@ -37,7 +37,7 @@
       - cuda-nvml-dev-{{ cuda__dash_case_cuda_version.stdout }}
       - cuda-nvrtc-dev-{{ cuda__dash_case_cuda_version.stdout }}
     update_cache: true
-  when: install_devel == 'y' and cuda_architecture.stdout == "x86_64"
+  when: install_devel == 'y'
 
 - name: Install CUDA libraries except for cuda-drivers
   become: true
@@ -48,12 +48,7 @@
       - libcublas-{{ cuda__dash_case_cuda_version.stdout }}
       - libcurand-{{ cuda__dash_case_cuda_version.stdout }}
     update_cache: true
-  when: install_devel != 'y' and cuda_architecture.stdout == "x86_64"
-
-- name: Skip CUDA apt meta-package install on ARM/Jetson
-  ansible.builtin.debug:
-    msg: "Skipping CUDA apt meta-package install on ARM; using Jetson/L4T-provided CUDA stack."
-  when: cuda_architecture.stdout != "x86_64"
+  when: install_devel != 'y'
 
 - name: Install extra CUDA libraries for x86_64
   become: true
