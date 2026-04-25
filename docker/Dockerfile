@@ -66,8 +66,14 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   && cat /tmp/rosdep-main-depend-packages.txt | xargs apt-get install -y --no-install-recommends \
   && /mowbot/cleanup_apt.sh
 
+# PyTorch cu124 index matches cuda_version in env/amd64.env (12.4).
+# Using it avoids pip resolving PyPI torch which pulls nvidia-cudnn-cu1x as a
+# separate large wheel, duplicating what ansible already installed.
 RUN /mowbot/resolve_pip_requirements.sh src > /tmp/pip_requirements.txt \
-  && pip install --no-cache-dir -r /tmp/pip_requirements.txt
+  && pip install --no-cache-dir \
+    --timeout 300 \
+    --retries 5 \
+    -r /tmp/pip_requirements.txt
 
 # hadolint ignore=SC1091
 RUN --mount=type=cache,target=${CCACHE_DIR} \
