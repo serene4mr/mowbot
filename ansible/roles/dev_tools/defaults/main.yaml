@@ -31,6 +31,10 @@ code_quality_packages:
   - clang-format
   - cppcheck
   - valgrind
+  - pre-commit
+  - python3-black
+  - python3-flake8
+  - python3-mypy
 
 # Optional tools (can be disabled)
 install_ros_tools: true

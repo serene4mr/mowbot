@@ -33,16 +33,6 @@
     state: latest
   when: install_code_quality_tools | bool
 
-- name: Install additional Python packages
-  ansible.builtin.pip:
-    name:
-      - pre-commit
-      - black
-      - flake8
-      - mypy
-    state: latest
-  when: install_python_tools | bool
-
 - name: Setup git-lfs
   ansible.builtin.command: git lfs install --skip-smudge
   changed_when: false
