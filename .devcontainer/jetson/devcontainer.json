@@ -1,34 +1,41 @@
 {
-    "name": "mowbot_dev_cuda",
+    "name": "mowbot-jetson",
     "build": {
         "dockerfile": "../Dockerfile",
-        "context": "..",
+        "context": "../..",
         "args": {
-            "USERNAME": "${localEnv:USER}"
+            "USERNAME": "${localEnv:USER}",
+            "USER_UID": "1000",
+            "USER_GID": "1000"
         },
         "options": [
-            "-t", "mowbot_dev_cuda",
             "--pull=false",
-            "--build-arg", "BASE_IMAGE=ghcr.io/serene4mr/mowbot:devel-amd64-latest"
+            "--build-arg", "BASE_IMAGE=ghcr.io/serene4mr/mowbot:devel-jetson-l4t-r36.4-latest"
         ]
     },
     "remoteUser": "${localEnv:USER}",
-    "updateRemoteUserUID": true,
+    "updateRemoteUserUID": false,
+    "overrideCommand": true,
     "runArgs": [
-        "--name", "mowbot_dev_cuda",
+        "--name", "mowbot-jetson",
         "--net", "host",
         "--ipc", "host",
         "--pid", "host",
         "--privileged",
-        "--gpus", "all",
+        "--runtime=nvidia",
         "-v", "/dev:/dev",
         "-v", "/tmp/.X11-unix:/tmp/.X11-unix",
+        "-v", "${localEnv:HOME}/mowbot_data:${containerWorkspaceFolder}/src/mowbot_data",
         "-e", "DISPLAY",
         "-e", "NVIDIA_VISIBLE_DEVICES=all",
         "-e", "NVIDIA_DRIVER_CAPABILITIES=all"
     ],
     "containerEnv": {
         "DISPLAY": "${localEnv:DISPLAY}"
+    },
+    "remoteEnv": {
+        "PATH": "/usr/local/cuda/bin:${containerEnv:PATH}",
+        "LD_LIBRARY_PATH": "/usr/local/cuda/lib64:${containerEnv:LD_LIBRARY_PATH}"
     },
     "customizations": {
         "vscode": {
@@ -38,4 +45,4 @@
             ]
         }
     }
-  }
+}

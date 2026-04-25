@@ -1,30 +1,28 @@
 # DevContainer Configurations
 
-VS Code DevContainer setups for Mowbot. Base images use the unified registry tags:
+Two configurations — one per deployment platform.
 
-- `ghcr.io/serene4mr/mowbot:devel-amd64-latest` — PC (GPU stack per env)
-- `ghcr.io/serene4mr/mowbot:devel-jetson-l4t-r36.4-latest` — Jetson (build on device / manual push)
+## `amd64/` — PC with NVIDIA GPU
 
-## Configurations
+- **Base image**: `ghcr.io/serene4mr/mowbot:devel-amd64-latest`
+- **GPU**: `--gpus all` (CUDA always present in the devel image)
+- **Use on**: any x86_64 Linux machine with an NVIDIA GPU
 
-### `devel/` — CPU-focused devcontainer
+## `jetson/` — Jetson (L4T r36.4)
 
-- **Base image**: `devel-amd64-latest`
-- **Use**: General development; add `--gpus` in `runArgs` if you need GPU.
-
-### `devel-cuda/` — PC with NVIDIA GPU
-
-- **Base image**: `devel-amd64-latest`
-- **Use**: Same image as above; `runArgs` includes `--gpus all`.
-
-### `devel-cuda-jetson/` — Jetson
-
-- **Base image**: `devel-jetson-l4t-r36.4-latest`
-- **Use**: On Jetson hardware; uses `nvidia` container runtime.
+- **Base image**: `ghcr.io/serene4mr/mowbot:devel-jetson-l4t-r36.4-latest`
+- **GPU**: `--runtime=nvidia` (Tegra integrated GPU via NVIDIA container runtime)
+- **Use on**: Jetson device with JetPack / L4T r36.4 installed on host
+- `PATH` and `LD_LIBRARY_PATH` extended with CUDA paths via `remoteEnv`
 
 ## Usage
 
-1. Open the repo in VS Code with the Dev Containers extension.
-2. **Dev Containers: Reopen in Container** and pick a configuration (or copy one to `.devcontainer/devcontainer.json`).
+1. Open repo in VS Code with the **Dev Containers** extension installed.
+2. `Ctrl+Shift+P` → **Dev Containers: Open Folder in Container...**
+3. Choose `amd64` or `jetson`.
 
-See the [main README](../README.md) for tag naming and migration from old `main-dev-cuda` style tags.
+## Notes
+
+- Both configurations build on top of `.devcontainer/Dockerfile` which adds a VS Code-compatible user layer.
+- `updateRemoteUserUID` is `true` for amd64 (matches host UID), `false` for Jetson (Jetson user setup differs).
+- Jetson images are built manually on-device; see [docker/build.sh](../docker/build.sh).

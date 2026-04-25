@@ -1,13 +1,14 @@
 {
-    "name": "mowbot_dev",
+    "name": "mowbot-amd64",
     "build": {
         "dockerfile": "../Dockerfile",
-        "context": "..",
+        "context": "../..",
         "args": {
-            "USERNAME": "${localEnv:USER}"
+            "USERNAME": "${localEnv:USER}",
+            "USER_UID": "1000",
+            "USER_GID": "1000"
         },
         "options": [
-            "-t", "mowbot_dev_cuda",
             "--pull=false",
             "--build-arg", "BASE_IMAGE=ghcr.io/serene4mr/mowbot:devel-amd64-latest"
         ]
@@ -15,21 +16,28 @@
     "remoteUser": "${localEnv:USER}",
     "updateRemoteUserUID": true,
     "runArgs": [
-        "--name", "mowbot_dev",
+        "--name", "mowbot-amd64",
         "--net", "host",
         "--ipc", "host",
         "--pid", "host",
         "--privileged",
+        "--gpus", "all",
         "-v", "/dev:/dev",
         "-v", "/dev/shm:/dev/shm",
         "-v", "/tmp/.X11-unix:/tmp/.X11-unix",
-        "-e", "DISPLAY"
+        "-e", "DISPLAY",
+        "-e", "NVIDIA_VISIBLE_DEVICES=all",
+        "-e", "NVIDIA_DRIVER_CAPABILITIES=all"
     ],
+    "containerEnv": {
+        "DISPLAY": "${localEnv:DISPLAY}"
+    },
     "customizations": {
         "vscode": {
             "extensions": [
-                "ms-python.python"
+                "ms-python.python",
+                "ms-vscode.cmake-tools"
             ]
         }
     }
-  }
+}
