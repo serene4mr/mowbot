@@ -119,7 +119,13 @@ fi
 if [ "$option_no_nvidia" = "true" ]; then
     ansible_args+=("--extra-vars" "prompt_install_nvidia=n")
 elif [ "$option_yes" = "true" ]; then
-    ansible_args+=("--extra-vars" "prompt_install_nvidia=y")
+    # In non-interactive mode, honor env/default value when provided.
+    # Fallback to 'y' only when not set by env files.
+    if [ -n "${prompt_install_nvidia}" ]; then
+        ansible_args+=("--extra-vars" "prompt_install_nvidia=${prompt_install_nvidia}")
+    else
+        ansible_args+=("--extra-vars" "prompt_install_nvidia=y")
+    fi
 fi
 
 # Check installation of dev package
@@ -175,12 +181,20 @@ fi
 # Install pipx for ansible
 if ! (python3 -m pipx --version >/dev/null 2>&1); then
     sudo apt-get -y update
-    python3 -m pip install --user pipx
+    # python3 -m pip install --user pipx
+    # Prefer distro package to avoid custom pip index/network issues in containers.
+    if ! sudo apt-get -y install pipx; then
+        # Fallback: force public PyPI instead of Jetson mirror.
+        python3 -m pip install --user --index-url https://pypi.org/simple pipx
+    fi
 fi
 
 # Install ansible
 python3 -m pipx ensurepath
 export PATH="${PIPX_BIN_DIR:=$HOME/.local/bin}:$PATH"
+# Force pipx's internal pip calls to use public PyPI.
+PIP_INDEX_URL="https://pypi.org/simple" \
+PIP_EXTRA_INDEX_URL="" \
 pipx install --include-deps --force "ansible==6.*"
 
 # Install ansible collections
