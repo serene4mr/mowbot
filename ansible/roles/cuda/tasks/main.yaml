@@ -56,7 +56,7 @@
     name:
       - cuda-nvprof-{{ cuda__dash_case_cuda_version.stdout }}
     update_cache: true
-  when: cuda_architecture.stdout == "x86_64"
+  when: install_devel == 'y' and cuda_architecture.stdout == "x86_64"
 
 - name: Install cuda-drivers
   become: true
