@@ -71,6 +71,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # separate large wheel, duplicating what ansible already installed.
 RUN /mowbot/resolve_pip_requirements.sh src > /tmp/pip_requirements.txt \
   && pip install --no-cache-dir \
+    --extra-index-url https://download.pytorch.org/whl/cu124 \
     --timeout 300 \
     --retries 5 \
     -r /tmp/pip_requirements.txt
