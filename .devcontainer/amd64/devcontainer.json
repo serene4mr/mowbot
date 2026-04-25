@@ -21,6 +21,8 @@
         "--ipc", "host",
         "--pid", "host",
         "--privileged",
+        "--group-add", "video",
+        "--group-add", "render",
         "--gpus", "all",
         "-v", "/dev:/dev",
         "-v", "/dev/shm:/dev/shm",

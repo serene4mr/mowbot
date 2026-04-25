@@ -25,4 +25,5 @@ Two configurations — one per deployment platform.
 
 - Both configurations build on top of `.devcontainer/Dockerfile` which adds a VS Code-compatible user layer.
 - `updateRemoteUserUID` is `true` for amd64 (matches host UID), `false` for Jetson (Jetson user setup differs).
+- Both configurations add `video` and `render` supplementary groups at runtime to ensure access to GPU device nodes mounted from the host.
 - Jetson images are built manually on-device; see [docker/build.sh](../docker/build.sh).
