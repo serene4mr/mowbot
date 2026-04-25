@@ -1,0 +1,23 @@
+# Host-only: NVIDIA Container Toolkit for GPU access from Docker on a real machine.
+# Run on the host (not inside a container), e.g.:
+#   ansible-playbook mowbot.dev_env.host -e prompt_install_nvidia_container_toolkit=y
+#   ./setup-dev-env.sh host -y
+# (prompt name avoids clashing with main playbook's "install NVIDIA libraries".)
+- name: Install NVIDIA Container Toolkit on host
+  hosts: localhost
+  connection: local
+  vars_prompt:
+    - name: prompt_install_nvidia_container_toolkit
+      prompt: |-
+        Install NVIDIA Container Toolkit? (required for docker run --gpus on this host) [y/N]
+      private: false
+
+  pre_tasks:
+    - name: Verify OS
+      ansible.builtin.fail:
+        msg: Only Ubuntu 22.04 is supported for this branch.
+      when: ansible_distribution_version != '22.04'
+
+  roles:
+    - role: mowbot.dev_env.nvidia_container_toolkit
+      when: prompt_install_nvidia_container_toolkit == 'y'

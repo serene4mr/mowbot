@@ -9,7 +9,7 @@
         "options": [
             "-t", "mowbot_dev_cuda",
             "--pull=false",
-            "--build-arg", "BASE_IMAGE=ghcr.io/serene4mr/mowbot:main-dev-cuda-latest"
+            "--build-arg", "BASE_IMAGE=ghcr.io/serene4mr/mowbot:devel-jetson-l4t-r36.4-latest"
         ]
     },
     "remoteUser": "${localEnv:USER}",

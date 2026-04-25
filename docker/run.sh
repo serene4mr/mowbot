@@ -1,79 +1,62 @@
 #!/usr/bin/env bash
+# Run a mowbot container (images: runtime-<platform>-<ver>, devel-<platform>-<ver>).
 
 set -e
 
-# Function to print help message
 print_help() {
     echo "Usage: run.sh [OPTIONS] [COMMAND]"
     echo "Options:"
-    echo "  --help          Display this help message"
-    echo "  -h              Display this help message"
-    echo "  --image         Specify the image to run (default: dev)"
-    echo "  --version       Specify the version tag (default: latest)"
-    echo "  --module        Specify the module (default: main)"
-    echo "  --cuda          Use CUDA-enabled image"
-    echo "  --runtime       Use runtime image instead of development"
+    echo "  --help -h       This help"
+    echo "  --version       Version tag (default: latest)"
+    echo "  --platform      amd64 (default) or jetson"
+    echo "  --runtime       Runtime image instead of devel"
+    echo "  --cuda          Pass --gpus all to docker run"
     echo "  --name          Container name (default: mowbot-container)"
-    echo "  --host          Use host networking"
-    echo "  --privileged    Run in privileged mode"
-    echo "  --volume        Mount additional volume (format: host:container)"
-    echo "  --env           Set environment variable (format: KEY=VALUE)"
-    echo "  --gpus          GPU access (default: all)"
-    echo "  --interactive   Run in interactive mode (default: true)"
-    echo "  --detached      Run in detached mode"
+    echo "  --host          Host networking"
+    echo "  --privileged    Privileged mode"
+    echo "  --volume        Extra mount host:container"
+    echo "  --env           Extra env KEY=VALUE"
+    echo "  --gpus          GPU selector (implies GPU; default all)"
     echo ""
-    echo "Examples:"
-    echo "  ./run.sh                    # Run main development environment"
-    echo "  ./run.sh --cuda             # Run main CUDA development environment"
-    echo "  ./run.sh --runtime          # Run main production runtime"
-    echo "  ./run.sh --version v1.0.0   # Run specific version"
-    echo "  ./run.sh --module navigation # Run navigation module (future)"
-    echo "  ./run.sh --volume /path:/workspace  # Mount workspace"
-    echo "  ./run.sh bash               # Run with specific command"
 }
 
 SCRIPT_DIR=$(readlink -f "$(dirname "$0")")
 WORKSPACE_ROOT="$SCRIPT_DIR/.."
 
-# Default values
-IMAGE_TYPE="dev"
 VERSION="latest"
 CONTAINER_NAME="mowbot-container"
-USE_CUDA=false
 USE_RUNTIME=false
+USE_CUDA=false
 USE_HOST_NETWORK=false
 USE_PRIVILEGED=false
 USE_GPU=false
+PLATFORM="amd64"
 INTERACTIVE=true
 DETACHED=false
 ADDITIONAL_VOLUMES=()
 ADDITIONAL_ENV_VARS=()
+GPU_OPTION=""
 
-# Parse arguments
 parse_arguments() {
-    while [ "$1" != "" ]; do
+    while [ $# -gt 0 ]; do
         case "$1" in
         --help | -h)
             print_help
             exit 0
             ;;
-        --image)
-            IMAGE_TYPE="$2"
-            shift
-            ;;
         --version)
             VERSION="$2"
             shift
             ;;
-        --module)
-            MODULE="$2"
+        --platform)
+            PLATFORM="$2"
             shift
-            ;;
-        --cuda)
-            USE_CUDA=true
             ;;
         --runtime)
             USE_RUNTIME=true
+            ;;
+        --cuda)
+            USE_CUDA=true
             ;;
         --name)
             CONTAINER_NAME="$2"
@@ -112,139 +95,79 @@ parse_arguments() {
             exit 1
             ;;
         *)
-            # Treat as command
-            COMMAND="$*"
-            break
+            COMMAND=("$@")
+            return
             ;;
         esac
         shift
     done
 }
 
-# Determine image name
+platform_slug() {
+    case "$PLATFORM" in
+    amd64) echo "amd64" ;;
+    jetson) echo "jetson-l4t-r36.4" ;;
+    *) echo "amd64" ;;
+    esac
+}
+
 get_image_name() {
     local base_name="ghcr.io/serene4mr/mowbot"
-    
-    # Default to main module
-    local module=${MODULE:-main}
-    local image_name=""
-    
+    local slug
+    slug=$(platform_slug)
+    local role
     if [ "$USE_RUNTIME" = "true" ]; then
-        if [ "$USE_CUDA" = "true" ]; then
-            if [ "$module" = "main" ]; then
-                image_name="${base_name}:main-cuda"
-            else
-                image_name="${base_name}:${module}-runtime-cuda"
-            fi
-        else
-            if [ "$module" = "main" ]; then
-                image_name="${base_name}:main"
-            else
-                image_name="${base_name}:${module}-runtime"
-            fi
-        fi
+        role="runtime"
     else
-        if [ "$USE_CUDA" = "true" ]; then
-            image_name="${base_name}:${module}-dev-cuda"
-        else
-            image_name="${base_name}:${module}-dev"
-        fi
+        role="devel"
     fi
-    
-    # Add version if not latest
-    if [ "$VERSION" != "latest" ]; then
-        image_name="${image_name}-${VERSION}"
-    fi
-    
-    echo "$image_name"
+    echo "${base_name}:${role}-${slug}-${VERSION}"
 }
 
-# Build docker run command
-build_run_command() {
-    local image_name=$(get_image_name)
-    local cmd="docker run"
-    
-    # Container name
-    cmd="$cmd --name $CONTAINER_NAME"
-    
-    # Remove container if it exists
-    cmd="$cmd --rm"
-    
-    # Interactive mode
-    if [ "$INTERACTIVE" = "true" ]; then
-        cmd="$cmd -it"
-    fi
-    
-    # Detached mode
-    if [ "$DETACHED" = "true" ]; then
-        cmd="$cmd -d"
-    fi
-    
-    # Host networking
-    if [ "$USE_HOST_NETWORK" = "true" ]; then
-        cmd="$cmd --net host"
-    fi
-    
-    # Privileged mode
-    if [ "$USE_PRIVILEGED" = "true" ]; then
-        cmd="$cmd --privileged"
-    fi
-    
-    # GPU access
-    if [ "$USE_CUDA" = "true" ] || [ "$USE_GPU" = "true" ]; then
-        if [ -n "$GPU_OPTION" ]; then
-            cmd="$cmd --gpus $GPU_OPTION"
-        else
-            cmd="$cmd --gpus all"
-        fi
-    fi
-    
-    # Standard volumes
-    cmd="$cmd -v $WORKSPACE_ROOT:/workspace"
-    cmd="$cmd -v /tmp/.X11-unix:/tmp/.X11-unix"
-    
-    # Additional volumes
-    for volume in "${ADDITIONAL_VOLUMES[@]}"; do
-        cmd="$cmd -v $volume"
-    done
-    
-    # Environment variables
-    cmd="$cmd -e DISPLAY=\$DISPLAY"
-    cmd="$cmd -e LOCAL_UID=\$(id -u)"
-    cmd="$cmd -e LOCAL_GID=\$(id -g)"
-    cmd="$cmd -e LOCAL_USER=\$(whoami)"
-    cmd="$cmd -e LOCAL_GROUP=\$(id -gn)"
-    
-    # Additional environment variables
-    for env_var in "${ADDITIONAL_ENV_VARS[@]}"; do
-        cmd="$cmd -e $env_var"
-    done
-    
-    # Image and command
-    cmd="$cmd $image_name"
-    
-    if [ -n "$COMMAND" ]; then
-        cmd="$cmd $COMMAND"
-    fi
-    
-    echo "$cmd"
-}
-
-# Main execution
 main() {
     parse_arguments "$@"
-    
-    # Check if image exists locally, pull if not
-    local image_name=$(get_image_name)
+    local image_name
+    image_name=$(get_image_name)
     if ! docker image inspect "$image_name" >/dev/null 2>&1; then
         echo "Image $image_name not found locally. Pulling..."
         docker pull "$image_name"
     fi
-    
-    # Build and execute run command
-    local run_cmd=$(build_run_command)
-    echo "Running: $run_cmd"
-    eval "$run_cmd"
+
+    local -a drun=(docker run --name "$CONTAINER_NAME" --rm)
+    if [ "$INTERACTIVE" = "true" ]; then
+        drun+=(-it)
+    fi
+    if [ "$DETACHED" = "true" ]; then
+        drun+=(-d)
+    fi
+    if [ "$USE_HOST_NETWORK" = "true" ]; then
+        drun+=(--net host)
+    fi
+    if [ "$USE_PRIVILEGED" = "true" ]; then
+        drun+=(--privileged)
+    fi
+    if [ "$USE_CUDA" = "true" ] || [ "$USE_GPU" = "true" ]; then
+        if [ -n "$GPU_OPTION" ]; then
+            drun+=(--gpus "$GPU_OPTION")
+        else
+            drun+=(--gpus all)
+        fi
+    fi
+    drun+=(-v "$WORKSPACE_ROOT:/workspace")
+    drun+=(-v /tmp/.X11-unix:/tmp/.X11-unix)
+    for volume in "${ADDITIONAL_VOLUMES[@]}"; do
+        drun+=(-v "$volume")
+    done
+    drun+=(-e "DISPLAY=$DISPLAY" -e "LOCAL_UID=$(id -u)" -e "LOCAL_GID=$(id -g)")
+    for env_var in "${ADDITIONAL_ENV_VARS[@]}"; do
+        drun+=(-e "$env_var")
+    done
+    drun+=("$image_name")
+    if [ ${#COMMAND[@]} -gt 0 ]; then
+        drun+=("${COMMAND[@]}")
+    fi
+    echo "Running: ${drun[*]}"
+    exec "${drun[@]}"
 }
 
 main "$@"

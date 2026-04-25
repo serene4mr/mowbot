@@ -1,5 +1,7 @@
 # Docker Build Setup Journey
 
+> **Update (current layout):** Images are `runtime-*` / `devel-*` with explicit platform suffixes; CI is amd64-only. See the repo [docker/README.md](../docker/README.md) and [README.md](../README.md).
+
 This document chronicles the complete setup of automated Docker image building and pushing to GitHub Container Registry (GHCR) for the Mowbot project.
 
 ## 🎯 Initial Problem

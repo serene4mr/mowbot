@@ -1,73 +1,30 @@
 # DevContainer Configurations
 
-This directory contains VS Code DevContainer configurations for Mowbot development.
+VS Code DevContainer setups for Mowbot. Base images use the unified registry tags:
 
-## Available Configurations
+- `ghcr.io/serene4mr/mowbot:devel-amd64-latest` — PC (GPU stack per env)
+- `ghcr.io/serene4mr/mowbot:devel-jetson-l4t-r36.4-latest` — Jetson (build on device / manual push)
 
-### 1. CPU Development (`devel/`)
-- **Container Name**: `mowbot_dev`
-- **Base Image**: `ghcr.io/serene4mr/mowbot:main-dev-latest`
-- **Use Case**: Standard development without GPU acceleration
-- **Features**: Full ROS2 + build tools + development dependencies
+## Configurations
 
-### 2. CUDA Development (`devel-cuda/`)
-- **Container Name**: `mowbot_dev_cuda`
-- **Base Image**: `ghcr.io/serene4mr/mowbot:main-dev-cuda-latest`
-- **Use Case**: Development with GPU acceleration (AI/ML, Gazebo, etc.)
-- **Features**: Full ROS2 + CUDA 12.4 + TensorRT + development dependencies
-- **Requirements**: NVIDIA GPU with compatible drivers
+### `devel/` — CPU-focused devcontainer
 
-## How to Use
+- **Base image**: `devel-amd64-latest`
+- **Use**: General development; add `--gpus` in `runArgs` if you need GPU.
 
-### Option 1: VS Code Command Palette
-1. Open project in VS Code
-2. `Ctrl+Shift+P` → "Dev Containers: Reopen in Container"
-3. VS Code will show both configurations - choose your preferred one
+### `devel-cuda/` — PC with NVIDIA GPU
 
-### Option 2: Direct Configuration Selection
-1. Copy the desired configuration to `.devcontainer/devcontainer.json`:
-   ```bash
-   # For CPU development
-   cp .devcontainer/devel/devcontainer.json .devcontainer/devcontainer.json
-   
-   # For CUDA development  
-   cp .devcontainer/devel-cuda/devcontainer.json .devcontainer/devcontainer.json
-   ```
-2. `Ctrl+Shift+P` → "Dev Containers: Rebuild and Reopen in Container"
+- **Base image**: `devel-amd64-latest`
+- **Use**: Same image as above; `runArgs` includes `--gpus all`.
 
-## Development Workflow
+### `devel-cuda-jetson/` — Jetson
 
-Once inside the container:
-```bash
-# Build the project
-colcon build
+- **Base image**: `devel-jetson-l4t-r36.4-latest`
+- **Use**: On Jetson hardware; uses `nvidia` container runtime.
 
-# Source the workspace
-source install/setup.bash
+## Usage
 
-# Run tests
-colcon test
+1. Open the repo in VS Code with the Dev Containers extension.
+2. **Dev Containers: Reopen in Container** and pick a configuration (or copy one to `.devcontainer/devcontainer.json`).
 
-# Launch applications
-ros2 launch mowbot_launch ...
-```
-
-## Features Included
-
-- **User Setup**: Creates `mowbot` user with sudo privileges
-- **Network**: Host networking for ROS2 communication
-- **Hardware Access**: Device mounting for sensors/cameras
-- **GUI Support**: X11 forwarding for RViz, Gazebo, etc.
-- **VS Code Extensions**: Python, C++, CMake tools pre-installed
-
-## Troubleshooting
-
-### CUDA Container Issues
-- Ensure NVIDIA drivers are installed on host
-- Verify Docker has NVIDIA runtime: `docker run --rm --gpus all nvidia/cuda:12.4-runtime nvidia-smi`
-- Check VS Code has "Dev Containers" extension installed
-
-### Permission Issues
-- Container creates `mowbot` user with UID/GID 1000
-- If your host user has different ID, files may have permission issues
-- Solution: Rebuild container or adjust USER_UID in Dockerfile
+See the [main README](../README.md) for tag naming and migration from old `main-dev-cuda` style tags.

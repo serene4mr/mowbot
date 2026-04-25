@@ -29,7 +29,7 @@ export GZ_PARTITION=default
 ```json
 {
     "name": "mowbot_dev",
-    "image": "ghcr.io/serene4mr/mowbot:main-dev-latest",
+    "image": "ghcr.io/serene4mr/mowbot:devel-amd64-latest",
     "runArgs": [
         "--name", "mowbot_dev",
         "--net", "host",          // Share host's network namespace

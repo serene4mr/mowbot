@@ -1,130 +1,46 @@
-# Containerized workloads for Mowbot
+# Mowbot Docker
 
-These containers are offered to simplify the development and deployment of Mowbot and its dependencies. This directory contains scripts to build and run the containers.
+## Images
 
-## Available Images
+| Tag pattern | Role |
+|-------------|------|
+| `runtime-<platform>-<ver>` | Deploy: minimal base + built workspace (compilers for image build are installed during Docker build only; use `mowbot_install_build_tools` there) |
+| `devel-<platform>-<ver>` | Full dev: extends runtime with `build_profile=devel` (build tools, dev tools, optional CUDA/TRT devel) |
 
-### Main Module (Full Version)
-- `ghcr.io/serene4mr/mowbot:main-dev` - Main development environment with full build tools
-- `ghcr.io/serene4mr/mowbot:main-dev-cuda` - Main development environment with CUDA support
-- `ghcr.io/serene4mr/mowbot:main` - Main production runtime environment
-- `ghcr.io/serene4mr/mowbot:main-cuda` - Main production runtime with CUDA support
+`platform` is `amd64` or `jetson-l4t-r36.4` (from `env/*.env`).
 
-### Base Images
-- `ghcr.io/serene4mr/mowbot:base` - Base image with ROS2 and dependencies
-- `ghcr.io/serene4mr/mowbot:base-cuda` - Base image with CUDA runtime
+## Build
 
-### Future Modules (Planned)
-- `ghcr.io/serene4mr/mowbot:navigation-dev` - Navigation module development
-- `ghcr.io/serene4mr/mowbot:navigation-runtime` - Navigation module runtime
-- `ghcr.io/serene4mr/mowbot:perception-dev` - Perception module development
-- `ghcr.io/serene4mr/mowbot:perception-runtime` - Perception module runtime
-
-## Version Support
-All images support both `latest` and versioned tags:
-- `ghcr.io/serene4mr/mowbot:main-dev` (latest)
-- `ghcr.io/serene4mr/mowbot:main-dev-v1.0.0` (specific version)
-
-## Usage
-
-### Building Images
+From repository root (requires `vcs` / `vcstool` and Docker Buildx; SSH for private `mowbot.repos`).
 
 ```bash
-# Build development environment
-./docker/build.sh --devel-only
-
-# Build with CUDA support
-./docker/build.sh --devel-only
-
-# Build specific version
-./docker/build.sh --devel-only --version v1.0.0
-
-# Build for ARM64 platform
-./docker/build.sh --platform linux/arm64 --devel-only
-
-# Build runtime environment
-./docker/build.sh
-
-# Build specific target
-./docker/build.sh --target main-dev-cuda
+cd docker
+chmod +x build.sh
+./build.sh --platform amd64 --target runtime --version v0.1.0
+./build.sh --platform amd64 --target devel --version v0.1.0
+./build.sh --platform jetson --target devel --version v0.1.0  # run on a Jetson/AArch64 host
 ```
 
-### Running Containers
+- `--push` — push the tag to the registry (after `docker login`).
+
+`build.sh` reads `env/amd64.env` for `--platform amd64`, and merges `env/jetson-l4t-r36.4.env` for `--platform jetson`.
+
+## Run
 
 ```bash
-# Run core development environment
-./docker/run.sh
-
-# Run with CUDA support
-./docker/run.sh --cuda
-
-# Run production runtime
-./docker/run.sh --runtime
-
-# Run specific version
-./docker/run.sh --version v1.0.0
-
-# Run navigation module (future)
-./docker/run.sh --module navigation
-
-# Run with custom command
-./docker/run.sh bash
-
-# Run with additional volumes
-./docker/run.sh --volume /path/to/data:/data
-
-# Run in detached mode
-./docker/run.sh --detached
+./run.sh                    # devel, amd64, tag latest
+./run.sh --runtime          # runtime image
+./run.sh --cuda --gpus all  # with GPU
+./run.sh --platform jetson
 ```
 
-### Docker Commands
+## Dockerfile layout
 
-```bash
-# Pull latest main development image
-docker pull ghcr.io/serene4mr/mowbot:main-dev
+- Single [Dockerfile](Dockerfile) with targets `runtime` and `devel`.
+- `FROM $BASE_IMAGE` and `ARG ROS_DISTRO` are passed by `docker buildx bake` from `env/` via `build.sh`.
+- The runtime stage calls `./setup-dev-env.sh -y --profile runtime --install-build-tools` so the workspace can be built in-image; a second `devel` stage calls `--profile devel` on top of `runtime`.
 
-# Run main development container
-docker run -it --rm \
-  -v $(pwd):/workspace \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -e DISPLAY=$DISPLAY \
-  ghcr.io/serene4mr/mowbot:main-dev
+## See also
 
-# Run with CUDA
-docker run -it --rm \
-  --gpus all \
-  -v $(pwd):/workspace \
-  ghcr.io/serene4mr/mowbot:main-dev-cuda
-```
-
-## Multi-stage Dockerfile structure
-
-### `$BASE_IMAGE`
-
-This is a base image of this Dockerfile. [`ros:humble-ros-base-jammy`](https://hub.docker.com/_/ros/tags?page=&page_size=&ordering=&name=humble-ros-base-jammy) will be given.
-
-### `$MOWBOT_BASE_IMAGE` (from Dockerfile.base)
-
-This stage performs only the basic setup required for all Mowbot images.
-
-### `$MOWBOT_BASE_CUDA_IMAGE` (from Dockerfile.base)
-
-This stage is built on top of `$MOWBOT_BASE_IMAGE` and adds the CUDA runtime environment and artifacts.
-
-### `rosdep-depend`
-
-The ROS dependency package list files will be generated.
-These files will be used in the subsequent stages:
-
-- `main-dev` (maps to `dev` tag)
-- `main` (main production runtime)
-
-By generating only the package list files and copying them to the subsequent stages, the dependency packages will not be reinstalled during the container build process unless the dependency packages change.
-
-### `main-dev` → `ghcr.io/serene4mr/mowbot:main-dev`
-
-Development environment with full build tools, debugging capabilities, and development dependencies.
-
-### `main` → `ghcr.io/serene4mr/mowbot:main`
-
-Production runtime environment optimized for deployment with minimal size and security hardening.
+- [README.md](../README.md) — project overview and migration from old tag names
+- [ansible/README.md](../ansible/README.md) — Ansible roles and `mowbot.dev_env.host` for NVIDIA Container Toolkit on the **host**
