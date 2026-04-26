@@ -72,6 +72,8 @@
       when: prompt_install_nvidia == 'y'
     - role: mowbot.dev_env.tensorrt
       when: prompt_install_nvidia == 'y'
+    - role: mowbot.dev_env.onnxruntime
+      when: prompt_install_nvidia == 'y'
     - role: mowbot.dev_env.kisak_mesa
       when: prompt_install_nvidia == 'y'
 

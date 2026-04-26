@@ -25,6 +25,14 @@
     update_cache: false
   when: install_devel == 'y'
 
+# Python bindings — pin to the same version as the apt-installed libnvinfer to avoid CUDA ABI
+# mismatch. Use tensorrt-cu12 (not the plain tensorrt meta-package) so pip selects the CUDA 12
+# wheel rather than silently pulling cu13 libs on a CUDA 12 system.
+- name: Install TensorRT Python wheel (CUDA 12) via pip
+  ansible.builtin.pip:
+    name: "tensorrt-cu12=={{ tensorrt_pip_version | default(tensorrt_version.split('-')[0]) }}"
+    executable: pip3
+
 # apt-mark hold (optional for stability)
 - name: Prevent TensorRT runtime packages from upgrading
   become: true

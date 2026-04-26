@@ -74,7 +74,8 @@ RUN /mowbot/resolve_pip_requirements.sh src > /tmp/pip_requirements.txt \
     --extra-index-url https://download.pytorch.org/whl/cu124 \
     --timeout 300 \
     --retries 5 \
-    -r /tmp/pip_requirements.txt
+    -r /tmp/pip_requirements.txt \
+  && ldconfig
 
 # hadolint ignore=SC1091
 RUN --mount=type=cache,target=${CCACHE_DIR} \
