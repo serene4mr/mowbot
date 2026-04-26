@@ -1,0 +1,15 @@
+---
+# ONNX Runtime version to install.
+# Pinned for reproducible builds — update together with onnxruntime-gpu release notes.
+onnxruntime_version: "1.23.2"
+
+# ONNX package version. Pinned to match onnxruntime-gpu 1.23.2 compatibility.
+onnx_version: "1.21.0"
+
+# Execution providers to validate after install. Used only when
+# onnxruntime_verify_installation is true.
+onnxruntime_expected_providers:
+  - CUDAExecutionProvider
+  - TensorrtExecutionProvider
+
+onnxruntime_verify_installation: false

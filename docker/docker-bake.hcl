@@ -1,23 +1,16 @@
+// Unified mowbot images. Context and tags are set by docker/build.sh.
 group "default" {
-  targets = [
-    "main-dev",
-    "main"
-  ]
+  targets = ["runtime", "devel"]
 }
 
-
-// For docker/metadata-action
-target "docker-metadata-action-main-dev" {}
-target "docker-metadata-action-main" {}
-
-target "main-dev" {
-  inherits = ["docker-metadata-action-main-dev"]
+target "runtime" {
+  context    = "."
   dockerfile = "docker/Dockerfile"
-  target = "main-dev"
+  target     = "runtime"
 }
 
-target "main" {
-  inherits = ["docker-metadata-action-main"]
+target "devel" {
+  context    = "."
   dockerfile = "docker/Dockerfile"
-  target = "main"
+  target     = "devel"
 }

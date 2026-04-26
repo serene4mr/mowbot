@@ -110,7 +110,7 @@ If you need to install CUDA manually, follow these steps:
 ### 1. Install CUDA Toolkit
 ```bash
 # Download environment variables
-wget -O /tmp/amd64.env https://raw.githubusercontent.com/serene4mr/mowbot/main/amd64.env
+wget -O /tmp/amd64.env https://raw.githubusercontent.com/serene4mr/mowbot/main/env/amd64.env
 source /tmp/amd64.env
 
 # Add NVIDIA repository

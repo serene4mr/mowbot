@@ -1,0 +1,115 @@
+ros2 launch mowbot_sensor_kit_t2_launch sensing.launch.py gnss:=false imu:=false ntrip:=false laser:=true realsense:=false data_path:=/workspaces/mowbot/src/mowbot_data
+ros2 launch mowbot_sensor_kit_t2_launch sensing.launch.py gnss:=false imu:=true ntrip:=false laser:=false realsense:=false data_path:=/workspaces/mowbot/src/mowbot_data
+ros2 launch mowbot_sensor_kit_t2_launch sensing.launch.py gnss:=false imu:=false ntrip:=false laser:=false realsense:=true data_path:=/workspaces/mowbot/src/mowbot_data
+
+export ROS_DOMAIN_ID=0
+ros2 launch mowbot_launch mowbot.launch.py \
+  robot_id:=mowbot_001 \
+  robot_model:=mowbot_model_t2 \
+  sensor_model:=mowbot_sensor_kit_t2 \
+  data_path:=/workspaces/mowbot/src/mowbot_data \
+  launch_robot:=true launch_sensing:=true launch_sensing_driver:=true \
+  launch_localization:=true launch_nav2:=true launch_app:=true
+
+export ROS_DOMAIN_ID=0
+ros2 launch mowbot_launch mowbot.launch.py \
+  robot_id:=mowbot_001 \
+  robot_model:=mowbot_model_t2 \
+  sensor_model:=mowbot_sensor_kit_t2 \
+  data_path:=/workspaces/mowbot/src/mowbot_data \
+  launch_robot:=true launch_sensing:=true launch_sensing_driver:=true \
+  launch_localization:=false launch_nav2:=false launch_app:=false
+
+source /opt/mowbot/setup.bash 
+
+# robot and sensor only
+export ROS_DOMAIN_ID=0
+ros2 launch mowbot_launch mowbot.launch.py \
+  robot_id:=mowbot_001 \
+  robot_model:=mowbot_model_t2 \
+  sensor_model:=mowbot_sensor_kit_t2 \
+  data_path:=/workspaces/mowbot/src/mowbot_data \
+  launch_robot:=true launch_sensing:=true launch_sensing_driver:=true \
+  launch_localization:=false launch_nav2:=false launch_app:=false
+
+
+# localization only 
+export ROS_DOMAIN_ID=0
+ros2 launch mowbot_launch mowbot.launch.py \
+  robot_id:=mowbot_001 \
+  robot_model:=mowbot_model_t2 \
+  sensor_model:=mowbot_sensor_kit_t2 \
+  data_path:=/workspaces/mowbot/src/mowbot_data \
+  launch_robot:=false launch_sensing:=false launch_sensing_driver:=false \
+  launch_localization:=true launch_nav2:=false launch_app:=false
+
+# navigation only
+export ROS_DOMAIN_ID=0
+ros2 launch mowbot_launch mowbot.launch.py \
+  robot_id:=mowbot_001 \
+  robot_model:=mowbot_model_t2 \
+  sensor_model:=mowbot_sensor_kit_t2 \
+  data_path:=/workspaces/mowbot/src/mowbot_data \
+  launch_robot:=false launch_sensing:=false launch_sensing_driver:=false \
+  launch_localization:=false launch_nav2:=true launch_app:=false
+
+# app only
+export ROS_DOMAIN_ID=0
+ros2 launch mowbot_launch mowbot.launch.py \
+  robot_id:=mowbot_001 \
+  robot_model:=mowbot_model_t2 \
+  sensor_model:=mowbot_sensor_kit_t2 \
+  data_path:=/workspaces/mowbot/src/mowbot_data \
+  launch_robot:=false launch_sensing:=false launch_sensing_driver:=false \
+  launch_localization:=false launch_nav2:=false launch_app:=true
+
+ros2 bag play rosbag/rosbag2_2026_03_24-14_10_33/ --clock
+
+use_sim_tim --clock
+
+sudo apt update
+sudo apt install -y mosquitto-clients
+
+
+sudo apt install ros-$ROS_DISTRO-foxglove-bridge
+ros2 launch foxglove_bridge foxglove_bridge_launch.xml
+
+
+
+xhost +local:docker
+
+docker run -it --rm \
+  --net=host \
+  -e DISPLAY=$DISPLAY \
+  -e QT_X11_NO_MITSHM=1 \
+  -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+  --name ros2-gui \
+  osrf/ros:humble-desktop \
+  /bin/bash -c "source /opt/ros/humble/setup.bash && rviz2"
+
+
+ros2 run yolo_inference_ros yolo_inference_node --ros-args \
+    -p enable_debug:=True \
+    -p model:=/workspaces/mowbot/yolov8n.pt \
+    -p fuse_model:=True \
+    -p enable_3d:=True \
+    -p enable_tracker:=True \
+    -p use_sim_time:=True \
+    -r /camera/image_raw:=/camera/camera/color/image_raw \
+    -r /camera/depth/image_raw:=/camera/camera/aligned_depth_to_color/image_raw \
+    -r /camera/depth/camera_info:=/camera/camera/aligned_depth_to_color/camera_info \
+    -r detections_2d:=/yolo/detections_2d
+
+
+ros2 run yolo_inference_ros yolo_inference_node --ros-args \
+    -p enable_debug:=True \
+    -p model:=/workspaces/mowbot/yolov8n.engine \
+    -p fuse_model:=True \
+    -p enable_3d:=True \
+    -p enable_tracker:=True \
+    -p use_sim_time:=True \
+    -r /camera/image_raw:=/camera/camera/color/image_raw \
+    -r /camera/depth/image_raw:=/camera/camera/aligned_depth_to_color/image_raw \
+    -r /camera/depth/camera_info:=/camera/camera/aligned_depth_to_color/camera_info \
+    -r detections_2d:=/yolo/detections_2d
+

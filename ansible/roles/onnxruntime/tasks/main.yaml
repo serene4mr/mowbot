@@ -1,0 +1,26 @@
+- name: Install onnxruntime-gpu via pip
+  # onnxruntime-gpu ships CUDA execution providers (CUDAExecutionProvider,
+  # TensorrtExecutionProvider). The cuda role registers the pip nvidia-* CUDA
+  # shared libs in ldconfig, which is required for CUDAExecutionProvider to load.
+  # ansible.builtin.pip is avoided: it requires pkg_resources in Ansible's pipx venv.
+  ansible.builtin.command:
+    cmd: "pip3 install onnxruntime-gpu{{ ('==' + onnxruntime_version) if onnxruntime_version else '' }}"
+  changed_when: true
+
+- name: Install onnx via pip
+  ansible.builtin.command:
+    cmd: "pip3 install onnx{{ ('==' + onnx_version) if onnx_version else '' }}"
+  changed_when: true
+
+- name: Verify ONNX Runtime GPU providers
+  ansible.builtin.shell: |
+    python3 -c "
+    import onnxruntime as ort
+    providers = ort.get_available_providers()
+    missing = [p for p in {{ onnxruntime_expected_providers | to_json }} if p not in providers]
+    if missing:
+        raise SystemExit('Missing providers: ' + str(missing))
+    print('OK providers:', providers)
+    "
+  changed_when: false
+  when: onnxruntime_verify_installation | bool

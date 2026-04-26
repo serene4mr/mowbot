@@ -133,8 +133,9 @@ ansible-playbook playbooks/main.yaml
 
 The collection uses environment files for configuration:
 
-- **amd64.env** - Configuration for x86_64 systems
-- **arm64.env** - Configuration for ARM64 systems
+- **env/amd64.env** — x86_64 / PC simulation
+- **env/jetson-l4t-r36.4.env** — Jetson (overrides after sourcing amd64; not generic `linux/arm64`)
+- **mowbot.dev_env.host** — host-only: NVIDIA Container Toolkit (see [playbooks/host.yaml](playbooks/host.yaml))
 
 ### Key Variables
 

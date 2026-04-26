@@ -1,119 +1,119 @@
 # GitHub Workflows
 
-This directory contains GitHub Actions workflows for the mowbot project.
+See [docker/README.md](../docker/README.md) and [README.md](../README.md) for the full image tag layout.
 
-## Current Workflows
+## `docker-build.yml`
 
-### `docker-build.yml` - Docker Image Builder
-**Purpose**: Automatically build and push Docker images to GitHub Container Registry using your existing `docker/build.sh` script
+Builds and pushes **linux/amd64** images only. Jetson (ARM64) images are built manually on-device with `./docker/build.sh --platform jetson`.
 
-**Triggers**:
-- Push to `main` branch (when Docker, Ansible, or setup files change)
-- Pull requests to `main` branch (builds but doesn't push)
-- Manual trigger (`workflow_dispatch`)
+### Triggers
 
-**What it builds**:
-1. **Base Images** (`base`, `base-cuda`)
-   - Foundation images with ROS and basic tools
-   - Multi-platform: amd64, arm64
+Runs on push/PR to `main` when any of the following paths change:
 
-2. **Main Images** (`main-dev`, `main`)
-   - Development and production images
-   - Multi-platform: amd64, arm64
+- `docker/**`
+- `ansible/**`
+- `ansible/playbooks/**`
+- `setup-dev-env.sh`
+- `env/**`
+- `ansible-galaxy-requirements.yaml`
+- `mowbot.repos`
 
-3. **CUDA Images** (`main-dev-cuda`, `main-cuda`)
-   - GPU-enabled images for CUDA workloads
-   - Platform: amd64 only
+Can also be triggered manually via `workflow_dispatch`.
 
-**Build Method**:
-- Uses your existing `docker/build.sh` script
-- Leverages Docker Bake for advanced build features
-- Maintains consistency with local development workflow
+### Tags produced
 
-**Image Tags**:
-- `ghcr.io/serene4mr/mowbot:base-latest`
-- `ghcr.io/serene4mr/mowbot:main-dev-latest`
-- `ghcr.io/serene4mr/mowbot:main-latest`
-- `ghcr.io/serene4mr/mowbot:main-dev-cuda-latest`
-- `ghcr.io/serene4mr/mowbot:main-cuda-latest`
+| Tag | When |
+|---|---|
+| `ghcr.io/serene4mr/mowbot:runtime-amd64-<sha>` | every push / PR build |
+| `ghcr.io/serene4mr/mowbot:devel-amd64-<sha>` | every push / PR build |
+| `ghcr.io/serene4mr/mowbot:runtime-amd64-latest` | push to `main` only |
+| `ghcr.io/serene4mr/mowbot:devel-amd64-latest` | push to `main` only |
 
-**Smart Features**:
-- ✅ Uses your proven build script
-- ✅ Only builds when relevant files change
-- ✅ Only pushes on main branch (not PRs)
-- ✅ Multi-platform support
-- ✅ Consistent with local development
+On a version tag (`v*`) the `<sha>` is replaced by the tag name.  
+PRs build the image but do **not** push. There is no multi-arch manifest; Jetson uses separate tags.
 
-## How This Solves Your Devcontainer Problem
+### Authentication
 
-1. **Automated Builds**: Every push to main builds fresh images
-2. **Available Images**: Images are pushed to `ghcr.io/serene4mr/mowbot:main-dev-latest`
-3. **Devcontainer Ready**: Your devcontainer can now pull from the registry
-4. **No More Local Builds**: No need to build images manually
+| Purpose | Mechanism |
+|---|---|
+| Clone private repos during `docker build` | SSH key via `webfactory/ssh-agent` |
+| Push images to GHCR | `GITHUB_TOKEN` (built-in, no PAT needed) |
 
-## Usage
+---
 
-### Manual Trigger
-1. Go to Actions tab in your repository
-2. Select "Build and Push Docker Images"
-3. Click "Run workflow"
-4. Choose branch and click "Run workflow"
+## Setup
 
-### Automatic Trigger
-The workflow runs automatically when you:
-- Push to `main` branch with changes to:
-  - `docker/` directory
-  - `ansible/` directory
-  - `setup-dev-env.sh`
-  - Environment files (`*.env`)
-  - `ansible-galaxy-requirements.yaml`
+### Required secrets
 
-### Viewing Results
-- Check the Actions tab for build status
-- View logs for debugging
-- Images are available at `ghcr.io/serene4mr/mowbot`
+| Secret | Purpose |
+|---|---|
+| `SSH_PRIVATE_KEY` | Cloning private repos during Docker build |
 
-## Future Workflows (Planned)
+No PAT token is needed — `GITHUB_TOKEN` has `packages: write` granted directly in the workflow.
 
-### 1. Testing Workflow
-- YAML linting
-- Ansible validation
-- Docker build testing
-- Security scanning
+### 1. Generate an SSH key pair
 
-### 2. Release Workflow
-- Create GitHub releases
-- Tagged Docker images
-- Release notes
+```bash
+ssh-keygen -t ed25519 -C "github-actions-mowbot" -f ~/.ssh/id_ed25519_mowbot_ci -N ""
+```
 
-### 3. Dependency Management
-- Automated dependency updates
-- Security vulnerability scanning
+### 2. Add the public key to your GitHub account
 
-## Permissions
+- Go to <https://github.com/settings/keys>
+- Click **New SSH key**
+- Title: `mowbot-github-actions`, Key type: Authentication Key
+- Paste the contents of `~/.ssh/id_ed25519_mowbot_ci.pub`
 
-The workflow uses:
-- `contents: read` - Read repository contents
-- `packages: write` - Push to GitHub Container Registry
+### 3. Add the private key as a repository secret
 
-## Secrets
+- Go to <https://github.com/serene4mr/mowbot> → Settings → Secrets and variables → Actions
+- Click **New repository secret**, Name: `SSH_PRIVATE_KEY`
+- Paste the contents of `~/.ssh/id_ed25519_mowbot_ci`
 
-Uses the built-in `GITHUB_TOKEN` secret - no additional setup required.
+### 4. Grant workflow write permissions
+
+- Go to <https://github.com/serene4mr/mowbot> → Settings → Actions → General
+- Under **Workflow permissions**, select **Read and write permissions**
+
+---
+
+## Key files
+
+| File | Purpose |
+|---|---|
+| `.github/workflows/docker-build.yml` | CI workflow |
+| `docker/build.sh` | Build script (`--platform`, `--target`, `--version`, `--push`) |
+| `mowbot.repos` | vcstool manifest with SSH URLs for private repos |
+
+`mowbot.repos` uses SSH URLs so the agent works during `vcs import`:
+
+```yaml
+repositories:
+  core/mowbot_sdk:
+    type: git
+    url: git@github.com:serene4mr/mowbot_sdk.git
+    version: main
+  launcher/mowbot_launch:
+    type: git
+    url: git@github.com:serene4mr/mowbot_launch.git
+    version: main
+  sensor_component/mowbot_ext:
+    type: git
+    url: git@github.com:serene4mr/mowbot_ext.git
+    version: main
+  sensor_component/realsense-ros:
+    type: git
+    url: git@github.com:serene4mr/realsense-ros.git
+    version: main
+```
+
+---
 
 ## Troubleshooting
 
-### Build Failures
-1. Check the Actions tab for error logs
-2. Verify Dockerfile syntax
-3. Check build arguments
-4. Ensure all required files exist
-
-### Image Not Found
-1. Wait for workflow to complete
-2. Check if images were pushed successfully
-3. Verify image tags in registry
-
-### Permission Issues
-1. Ensure repository has package write permissions
-2. Check if `GITHUB_TOKEN` is available
-3. Verify workflow permissions are set correctly
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `remote: Repository not found` during build | SSH key not configured | Verify `SSH_PRIVATE_KEY` secret and that the public key is added to your GitHub account |
+| `denied: permission_denied: write_package` | Workflow permissions not set | Enable "Read and write permissions" in repo Actions settings |
+| `invalid empty ssh agent socket` | `SSH_PRIVATE_KEY` secret missing or empty | Check the secret value and `webfactory/ssh-agent` step logs |
+| Container fails to start locally (`render` group missing) | Host has no `render` group | Remove `--group-add render` from `.devcontainer/amd64/devcontainer.json` `runArgs` |

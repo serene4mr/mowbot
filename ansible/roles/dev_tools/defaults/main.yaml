@@ -25,12 +25,17 @@ python_tools_packages:
   - python3-pip
   - python3-venv
   - python3-dev
+  - python3-setuptools
 
 # Code quality tools
 code_quality_packages:
   - clang-format
   - cppcheck
   - valgrind
+  - black
+  - pre-commit
+  - python3-flake8
+  - python3-mypy
 
 # Optional tools (can be disabled)
 install_ros_tools: true

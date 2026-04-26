@@ -26,22 +26,20 @@
     state: latest
   when: install_python_tools | bool
 
+- name: Enable universe apt repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} universe"
+    state: present
+    update_cache: true
+  when: install_code_quality_tools | bool
+
 - name: Install code quality tools
   become: true
   ansible.builtin.apt:
     name: "{{ code_quality_packages }}"
     state: latest
   when: install_code_quality_tools | bool
-
-- name: Install additional Python packages
-  ansible.builtin.pip:
-    name:
-      - pre-commit
-      - black
-      - flake8
-      - mypy
-    state: latest
-  when: install_python_tools | bool
 
 - name: Setup git-lfs
   ansible.builtin.command: git lfs install --skip-smudge

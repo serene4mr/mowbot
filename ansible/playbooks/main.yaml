@@ -1,3 +1,7 @@
+# Mowbot dev environment: build_profile drives which roles run.
+#   runtime — minimal image: no build_tools, no dev_tools, CUDA/TRT runtime packages only
+#   devel   — full tools: build_tools, dev_tools, CUDA/TRT devel packages
+# Install NVIDIA Container Toolkit on the host only: ansible-playbook mowbot.dev_env.host
 - name: Set up source development environments for mowbot
   hosts: localhost
   connection: local
@@ -12,11 +16,11 @@
         [Warning] Should the ONNX model files and other artifacts be downloaded alongside setting up the development environment.
         Download artifacts? [y/N]
       private: false
-    - name: install_devel
+    - name: build_profile
       prompt: |-
-        [Warning] Do you want to install recommended development tools for Mowbot? [y/N]
+        Build profile: 'runtime' (minimal, no compilers) or 'devel' (full build and dev tools) [runtime/devel]
       private: false
-      default: y
+      default: "devel"
 
   pre_tasks:
     - name: Verify OS
@@ -24,46 +28,61 @@
         msg: Only Ubuntu 22.04 is supported for this branch.
       when: ansible_distribution_version != '22.04'
 
+    - name: Validate build_profile
+      ansible.builtin.fail:
+        msg: "build_profile must be 'runtime' or 'devel', got {{ build_profile }}"
+      when: build_profile not in ['runtime', 'devel']
+
+    - name: Map build_profile to install_devel for cuda/tensorrt roles
+      ansible.builtin.set_fact:
+        install_devel: "{{ 'y' if build_profile == 'devel' else 'N' }}"
+
     - name: Print configuration
       ansible.builtin.debug:
         msg:
           - "ROS 2 Distribution: {{ rosdistro | default('humble') }}"
           - "RMW Implementation: {{ rmw_implementation | default('rmw_cyclonedds_cpp') }}"
-          - "CUDA Version: {{ cuda_version | default('12.4') }}"
-          - "cuDNN Version: {{ cudnn_version | default('8.9.7.29') }}"
-          - "TensorRT Version: {{ tensorrt_version | default('8.6.1.6') }}"
+          - "CUDA Version: {{ cuda_version | default('11.8') }}"
+          - "cuDNN Version: {{ cudnn_version | default('8.6.0.163-1+cuda11.8') }}"
+          - "TensorRT Version: {{ tensorrt_version | default('8.6.0.12-1+cuda11.8') }}"
           - "Install NVIDIA: {{ prompt_install_nvidia | default('N') }}"
           - "Download Artifacts: {{ prompt_download_artifacts | default('N') }}"
-          - "Install Dev Tools: {{ install_devel | default('y') }}"
+          - "Build profile: {{ build_profile }}"
+          - "install_devel (derived): {{ install_devel }}"
 
     - name: Show a warning if the NVIDIA libraries will not be installed
       ansible.builtin.pause:
         seconds: 10
         prompt: |
           [Warning] Skipping installation of NVIDIA libraries. Please manually install them if you plan to use any dependent components.
-      when: prompt_install_nvidia != 'y'
+      when: prompt_install_nvidia != 'y' and not (mowbot_non_interactive | default(false) | bool)
 
   roles:
-    # Core development environment (always installed)
+    # Build toolchain: devel profile, or image build (see Docker runtime stage mowbot_install_build_tools)
     - role: mowbot.dev_env.build_tools
+      when: build_profile == 'devel' or mowbot_install_build_tools | default(false) | bool
+
+    # Core stack (always)
     - role: mowbot.dev_env.geographiclib
     - role: mowbot.dev_env.rmw_implementation
     - role: mowbot.dev_env.qt5_serialport
 
-    # GPU acceleration (conditional)
+    # GPU acceleration (conditional on NVIDIA consent; never nvidia_container_toolkit here — use host playbook)
     - role: mowbot.dev_env.cuda
       when: prompt_install_nvidia == 'y'
     - role: mowbot.dev_env.tensorrt
       when: prompt_install_nvidia == 'y'
-    - role: mowbot.dev_env.nvidia_container_toolkit
+    - role: mowbot.dev_env.onnxruntime
       when: prompt_install_nvidia == 'y'
     - role: mowbot.dev_env.kisak_mesa
       when: prompt_install_nvidia == 'y'
 
-    # Development tools (conditional)
+    # Development tools (devel only)
     - role: mowbot.dev_env.dev_tools
-      when: install_devel == 'y'
+      when: build_profile == 'devel'
 
-    # Artifacts and assets (conditional)
+    # Artifacts (local / interactive only; skip in container builds via extra-var)
     - role: mowbot.dev_env.artifacts
-      when: prompt_download_artifacts == 'y'
+      when:
+        - prompt_download_artifacts == 'y'
+        - not (mowbot_skip_artifacts | default(false) | bool)

@@ -1,4 +1,4 @@
 ---
 # ccache configuration
-ccache_dir: "/var/tmp/ccache"
+ccache_dir: "/root/.ccache"
 ccache_max_size: "5G"

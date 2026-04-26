@@ -1,0 +1,44 @@
+pip install onnxruntime-gpu==1.18.0
+
+python3 - <<'PY'
+import onnxruntime as ort
+print("ORT:", ort.__version__)
+print("Providers:", ort.get_available_providers())
+PY
+
+
+
+
+# 1) Check Ubuntu version
+. /etc/os-release
+echo "$PRETTY_NAME"
+
+# 2) Check CUDA toolkit/runtime location and version hints
+nvcc --version || true
+nvidia-smi
+
+# 3) Install missing cuFFT runtime for CUDA 11 line
+sudo apt-get update
+sudo apt-get install -y libcufft10
+
+# If that package name is unavailable on your repo, try:
+# sudo apt-get install -y cuda-cufft-11-8
+# (or matching 11.x variant exposed by your CUDA apt repo)
+
+# 4) Refresh linker cache
+sudo ldconfig
+
+# 5) Verify the missing soname now exists
+ldconfig -p | grep libcufft
+
+# 6) Re-test ONNX Runtime CUDA provider
+python3 - <<'PY'
+import onnxruntime as ort
+model = "/workspaces/mowbot/terrain_semseg_mask2former.onnx"
+print("ORT:", ort.__version__)
+print("Available providers:", ort.get_available_providers())
+sess = ort.InferenceSession(model, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+print("Session providers:", sess.get_providers())
+print("Provider options:", sess.get_provider_options())
+print("CUDA OK:", "CUDAExecutionProvider" in sess.get_providers())
+PY

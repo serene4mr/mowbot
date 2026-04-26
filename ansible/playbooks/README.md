@@ -5,15 +5,13 @@ This directory contains Ansible playbooks for setting up the mowbot development 
 ## Playbooks
 
 ### `main.yaml`
-**Purpose**: Complete mowbot development environment setup with modular role execution
+**Purpose**: Development environment; **`build_profile`** is `runtime` (minimal) or `devel` (full tools, CUDA/TRT devel when NVIDIA is enabled).
 
-**Features**:
-- **Interactive prompts** for NVIDIA libraries, artifacts download, and development tools
-- **OS verification** (Ubuntu 22.04 only)
-- **Modular role execution** based on user choices
-- **Comprehensive role coverage** including all 9 available roles
-- **Smart dependency management** with proper execution order
-- **Detailed configuration display** with default values
+- **`nvidia_container_toolkit` is not** applied here; use `host.yaml` on the real machine.
+- **Artifacts** role can be skipped with `-e mowbot_skip_artifacts=true` (e.g. container builds).
+
+### `host.yaml`
+**Purpose**: Install **NVIDIA Container Toolkit** on the **host** (not inside an image). Run: `ansible-playbook mowbot.dev_env.host` or `./setup-dev-env.sh host`.
 
 ## Usage
 
@@ -27,23 +25,17 @@ ansible-playbook playbooks/main.yaml
 For automated/CI environments, override the prompt variables:
 
 ```bash
-# Full installation with all components
+# Full devel install (non-interactive)
 ansible-playbook playbooks/main.yaml \
   -e prompt_install_nvidia=y \
-  -e prompt_download_artifacts=y \
-  -e install_devel=y
+  -e prompt_download_artifacts=n \
+  -e build_profile=devel
 
-# Minimal installation (core only)
+# Minimal runtime-style (no dev tools / no TRT devel headers)
 ansible-playbook playbooks/main.yaml \
   -e prompt_install_nvidia=n \
   -e prompt_download_artifacts=n \
-  -e install_devel=n
-
-# GPU development environment
-ansible-playbook playbooks/main.yaml \
-  -e prompt_install_nvidia=y \
-  -e prompt_download_artifacts=n \
-  -e install_devel=y
+  -e build_profile=runtime
 ```
 
 ## Interactive Prompts

@@ -1,11 +1,29 @@
-
-
-- name: Add NVIDIA container toolkit GPG key
+- name: Ensure keyrings directory exists
   become: true
-  ansible.builtin.apt_key:
+  ansible.builtin.file:
+    path: /usr/share/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Fetch NVIDIA Container Toolkit GPG key
+  become: true
+  ansible.builtin.get_url:
     url: "{{ nvidia_container_toolkit_gpg_url }}"
-    state: present
-    keyring: "{{ nvidia_container_toolkit_keyring }}"
+    dest: /tmp/nvidia-container-toolkit.asc
+    mode: "0644"
+
+- name: Install NVIDIA Container Toolkit GPG key into keyring
+  become: true
+  ansible.builtin.shell: |
+    gpg --dearmor -o {{ nvidia_container_toolkit_keyring }} < /tmp/nvidia-container-toolkit.asc
+  args:
+    creates: "{{ nvidia_container_toolkit_keyring }}"
+
+- name: Remove NVIDIA Container Toolkit key temp file
+  become: true
+  ansible.builtin.file:
+    path: /tmp/nvidia-container-toolkit.asc
+    state: absent
 
 - name: Get system architecture
   ansible.builtin.command: dpkg --print-architecture
@@ -61,7 +79,7 @@
 
 - name: Test NVIDIA Container Toolkit with CUDA container
   become: true
-  ansible.builtin.docker_container:
+  community.docker.docker_container:
     name: nvidia-test
     image: nvcr.io/nvidia/cuda:12.3.1-runtime-ubuntu20.04
     command: nvidia-smi

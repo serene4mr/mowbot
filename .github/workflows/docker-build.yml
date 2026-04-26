@@ -1,4 +1,4 @@
-name: Build and Push Docker Images
+name: Build and push Docker images (amd64)
 
 on:
   push:
@@ -7,34 +7,34 @@ on:
       - 'docker/**'
       - 'ansible/**'
       - 'setup-dev-env.sh'
-      - '*.env'
+      - 'env/**'
       - 'ansible-galaxy-requirements.yaml'
       - 'mowbot.repos'
+      - 'ansible/playbooks/**'
   pull_request:
     branches: [ main ]
     paths:
       - 'docker/**'
       - 'ansible/**'
       - 'setup-dev-env.sh'
-      - '*.env'
+      - 'env/**'
       - 'ansible-galaxy-requirements.yaml'
       - 'mowbot.repos'
+      - 'ansible/playbooks/**'
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  VERSION: ${{ github.sha }}
 
 jobs:
-  build-images:
+  build-amd64:
+    name: Build runtime and devel (linux/amd64)
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
       contents: read
       packages: write
-      actions: read
-      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -48,34 +48,15 @@ jobs:
             image=moby/buildkit:v0.12.0
           buildkitd-flags: --debug
 
-      - name: Setup SSH key and agent (top-level, once)
-        id: ssh-agent
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add GitHub to known hosts
         run: |
-          set -eu
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-          eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/id_ed25519
-          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
-          ssh -T git@github.com || true
-
-      - name: Verify SSH agent for Docker
-        run: |
-          set -eu
-          if [ -n "$SSH_AUTH_SOCK" ] && [ -S "$SSH_AUTH_SOCK" ]; then
-            ls -la "$SSH_AUTH_SOCK"
-          else
-            echo "ERROR: SSH agent socket not found"
-            exit 1
-          fi
-          docker run --rm -e SSH_AUTH_SOCK="$SSH_AUTH_SOCK" \
-            -v "$SSH_AUTH_SOCK:$SSH_AUTH_SOCK" alpine:latest \
-            sh -c "apk add --no-cache openssh-client && ssh-add -l" || true
-
-      - name: Set up QEMU for multi-platform
-        uses: docker/setup-qemu-action@v3
 
       - name: Install vcstool
         run: |
@@ -83,62 +64,49 @@ jobs:
           sudo apt-get install -y python3-pip
           pip install vcstool
 
-      - name: Configure Git
+      - name: Compute version tag
+        id: ver
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          export GIT_TERMINAL_PROMPT=0
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Log in to Container Registry
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.PAT_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Multi-arch BASE build (no pruning before manifests!)
-      - name: Build and push base images (parallel)
+      - name: Build and push images
         run: |
-          set -eu
-          cd docker
+          set -eux
+          cd "${GITHUB_WORKSPACE}/docker"
           chmod +x build.sh
-          (./build.sh --target base --platform linux/amd64 --version $VERSION && \
-           docker tag ghcr.io/serene4mr/mowbot:base ghcr.io/serene4mr/mowbot:base-amd64 && \
-           docker push ghcr.io/serene4mr/mowbot:base-amd64) &
-          (./build.sh --target base --platform linux/arm64 --version $VERSION && \
-           docker push ghcr.io/serene4mr/mowbot:base-arm64) &
-          wait
-          docker manifest create ghcr.io/serene4mr/mowbot:base \
-            ghcr.io/serene4mr/mowbot:base-amd64 \
-            ghcr.io/serene4mr/mowbot:base-arm64
-          docker manifest push ghcr.io/serene4mr/mowbot:base
-          docker manifest create ghcr.io/serene4mr/mowbot:base-latest \
-            ghcr.io/serene4mr/mowbot:base-amd64 \
-            ghcr.io/serene4mr/mowbot:base-arm64
-          docker manifest push ghcr.io/serene4mr/mowbot:base-latest
+          TAG="${{ steps.ver.outputs.tag }}"
+          PUSH=()
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            PUSH=(--push)
+          fi
+          ./build.sh --platform amd64 --target runtime --version "${TAG}" "${PUSH[@]}"
+          ./build.sh --platform amd64 --target devel --version "${TAG}" "${PUSH[@]}"
 
-      # MAXIMUM CLEANUP before CUDA build (do NOT remove /tmp; agent uses it! Only /var/tmp)
-      - name: Aggressive cleanup before CUDA build
+      - name: Tag latest aliases (main branch, non-PR)
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |
-          set -eu
-          docker system prune -af --volumes
-          sudo apt-get clean
-          sudo apt-get autoremove -y
-          sudo rm -rf /var/lib/apt/lists/*
-          sudo rm -rf /var/tmp/*
-          df -h
+          set -eux
+          TAG="${{ steps.ver.outputs.tag }}"
+          IMG=ghcr.io/serene4mr/mowbot
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker buildx imagetools create -t "${IMG}:runtime-amd64-latest" "${IMG}:runtime-amd64-${TAG}"
+          docker buildx imagetools create -t "${IMG}:devel-amd64-latest" "${IMG}:devel-amd64-${TAG}"
 
-      - name: Build and push CUDA images (AMD64 only)
-        run: |
-          set -eu
-          cd docker
-          ./build.sh --target main-dev-cuda --platform linux/amd64 --version $VERSION
-          docker push ghcr.io/serene4mr/mowbot:main-dev-cuda
-          docker tag ghcr.io/serene4mr/mowbot:main-dev-cuda ghcr.io/serene4mr/mowbot:main-dev-cuda-latest
-          docker push ghcr.io/serene4mr/mowbot:main-dev-cuda-latest
-
-      - name: Final cleanup
+      - name: Post summary
         if: always()
         run: |
-          docker system prune -af --volumes
-          echo "✅ All Docker images built and pushed successfully!"
+          echo "Images (example names):"
+          echo "  ghcr.io/serene4mr/mowbot:runtime-amd64-${{ steps.ver.outputs.tag }}"
+          echo "  ghcr.io/serene4mr/mowbot:devel-amd64-${{ steps.ver.outputs.tag }}"
