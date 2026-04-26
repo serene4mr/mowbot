@@ -3,8 +3,8 @@
 # Pinned for reproducible builds — update together with onnxruntime-gpu release notes.
 onnxruntime_version: "1.23.2"
 
-# ONNX opset/package version. Defaults to latest.
-onnx_version: ""
+# ONNX package version. Pinned to match onnxruntime-gpu 1.23.2 compatibility.
+onnx_version: "1.21.0"
 
 # Execution providers to validate after install. Used only when
 # onnxruntime_verify_installation is true.
