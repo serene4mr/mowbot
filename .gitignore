@@ -11,6 +11,7 @@
 /mowbot_data
 
 /rosbag
+/tmp
 
 
 *.pt
