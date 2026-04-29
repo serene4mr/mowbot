@@ -11,8 +11,14 @@
 /mowbot_data
 
 /rosbag
+/tmp
 
 
 *.pt
 *.engine
 *.onnx
+
+
+__pycache__/
+.pytest_cache/
+.pyc
