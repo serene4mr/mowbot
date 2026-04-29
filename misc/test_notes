@@ -113,3 +113,8 @@ ros2 run yolo_inference_ros yolo_inference_node --ros-args \
     -r /camera/depth/camera_info:=/camera/camera/aligned_depth_to_color/camera_info \
     -r detections_2d:=/yolo/detections_2d
 
+
+
+
+ros2 run mowbot_semantic_segmentation semantic_segmentation_node --ros-args --params-file /workspaces/mowbot/src/core/mowbot_sdk/perception/mowbot_semantic_segmentation/config/semantic_segmentation_node.yaml
+
