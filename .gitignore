@@ -17,3 +17,7 @@
 *.pt
 *.engine
 *.onnx
+
+
+__pycache__/
+.pytest_cache/
