@@ -127,3 +127,6 @@ ros2 run mowbot_semantic_segmentation semantic_segmentation_node \
 
 sudo apt-get update
 sudo apt-get install -y ros-humble-ros2run ros-humble-ros2launch
+
+
+ros2 run mowbot_semantic_segmentation semantic_segmentation_node --ros-args --params-file /workspaces/mowbot/src/core/mowbot_sdk/perception/mowbot_semantic_segmentation/config/semantic_segmentation_node.yaml
