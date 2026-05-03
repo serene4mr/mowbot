@@ -116,5 +116,14 @@ ros2 run yolo_inference_ros yolo_inference_node --ros-args \
 
 
 
-ros2 run mowbot_semantic_segmentation semantic_segmentation_node --ros-args --params-file /workspaces/mowbot/src/core/mowbot_sdk/perception/mowbot_semantic_segmentation/config/semantic_segmentation_node.yaml
+ros2 run mowbot_semantic_segmentation semantic_segmentation_node \
+  --ros-args \
+  --params-file /workspaces/mowbot/src/core/mowbot_sdk/perception/mowbot_semantic_segmentation/config/semantic_segmentation_node.yaml \
+  -p use_sim_time:=true
 
+
+
+
+
+sudo apt-get update
+sudo apt-get install -y ros-humble-ros2run ros-humble-ros2launch

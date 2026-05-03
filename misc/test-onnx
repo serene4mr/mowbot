@@ -42,3 +42,5 @@ print("Session providers:", sess.get_providers())
 print("Provider options:", sess.get_provider_options())
 print("CUDA OK:", "CUDAExecutionProvider" in sess.get_providers())
 PY
+
+
